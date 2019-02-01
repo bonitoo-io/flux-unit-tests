@@ -1,0 +1,8 @@
+-------------------------------------------------------------------------------
+Test set: com.bonitoo.qa.flux.rest.artifacts.test.ArtifactsTest
+-------------------------------------------------------------------------------
+Tests run: 7, Failures: 1, Errors: 0, Skipped: 2, Time elapsed: 0.255 s <<< FAILURE! - in com.bonitoo.qa.flux.rest.artifacts.test.ArtifactsTest
+testFail(com.bonitoo.qa.flux.rest.artifacts.test.ArtifactsTest)  Time elapsed: 0.007 s  <<< FAILURE!
+org.junit.ComparisonFailure: expected:<[fals]e> but was:<[tru]e>
+	at com.bonitoo.qa.flux.rest.artifacts.test.ArtifactsTest.testFail(ArtifactsTest.java:147)
+

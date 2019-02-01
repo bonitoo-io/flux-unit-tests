@@ -1,0 +1,10 @@
+#Test configuration
+---
+org:
+   name: qa
+   admin: admin
+   password: changeit
+   bucket: test-data
+influx2:
+   url: http://localhost:9999
+   api: /api/v2

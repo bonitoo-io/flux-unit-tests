@@ -1,0 +1,5 @@
+com/bonitoo/qa/config/Org.class
+com/bonitoo/qa/config/Influx2.class
+com/bonitoo/qa/flux/rest/artifacts/test/ArtifactsTest.class
+com/bonitoo/qa/config/TestConfig.class
+com/bonitoo/qa/TestRunner.class
