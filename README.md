@@ -13,7 +13,7 @@ See the testConfig.yml for the target endpoint.
 ## Run tests
 
 ```
-mvn --fail-at-end -Dmaven.test.failure.ignore=true clean test surefire-report:report
+$ mvn --fail-at-end -Dmaven.test.failure.ignore=true clean test surefire-report:report
 ```
 
 TODO - find a more elegant way to configure test run.
