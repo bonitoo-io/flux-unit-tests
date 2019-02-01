@@ -1,0 +1,28 @@
+# Eclipse
+.classpath
+.project
+.settings/
+
+
+# Intellij
+.idea/
+*.iml
+*.iws
+
+# Mac
+.DS_Store
+
+# Maven
+log/
+target/
+
+# webdriver
+chromedriver*
+geckodriver*
+IEDriverServer.exe
+
+# driver-binary-downloader-maven-plugin
+webDriver_binaries/
+
+# temporary backup files
+**/bak
