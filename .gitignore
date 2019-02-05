@@ -26,3 +26,12 @@ webDriver_binaries/
 
 # temporary backup files
 **/bak
+
+#packages
+**/*.deb
+*.deb
+*.rpm
+*.tgz
+*.jar
+*.war
+*.ear
