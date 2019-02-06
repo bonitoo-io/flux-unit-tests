@@ -29,4 +29,8 @@ public class TestConfig {
     public void setTelegraf(Telegraf telegraf) {
         this.telegraf = telegraf;
     }
+
+    public String getInflux2APIEndp(){
+        return influx2.getUrl() + influx2.getApi();
+    }
 }
