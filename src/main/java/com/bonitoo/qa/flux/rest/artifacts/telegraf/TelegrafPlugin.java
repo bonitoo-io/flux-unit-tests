@@ -2,26 +2,26 @@ package com.bonitoo.qa.flux.rest.artifacts.telegraf;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-public class TelegrafPlugin {
+public class TelegrafPlugin{
 
-    private String name;
-    private String type;
-    private String comment;
-    private String config; //should be typed but each class can be different - ignore for now
+    String name;
+    String type;
+    String comment;
 
-    public TelegrafPlugin(String name, String type ) {
-        this.name = name;
-        this.type = type;
-        this.comment = "";
-        this.config = "";
+    public TelegrafPlugin(){
+
     }
 
-
-    public TelegrafPlugin(String name, String type, String comment, String config) {
+    public TelegrafPlugin(String name) {
         this.name = name;
-        this.type = type;
+        this.type = "";
+        this.comment = "";
+    }
+
+    public TelegrafPlugin(String name, String comment) {
+        this.name = name;
+        this.type = "";
         this.comment = comment;
-        this.config = config;
     }
 
     public String getName() {
@@ -48,13 +48,4 @@ public class TelegrafPlugin {
         this.comment = comment;
     }
 
-    @JsonIgnore
-    public String getConfig() {
-        return config;
-    }
-
-    @JsonIgnore
-    public void setConfig(String config) {
-        this.config = config;
-    }
 }

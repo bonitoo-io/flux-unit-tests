@@ -3,22 +3,22 @@ package com.bonitoo.qa;
 import com.bonitoo.qa.config.TestConfig;
 import com.bonitoo.qa.flux.rest.artifacts.Organization;
 import com.bonitoo.qa.flux.rest.artifacts.OrganizationArray;
-import com.bonitoo.qa.flux.rest.artifacts.test.ArtifactsTest;
+import com.bonitoo.qa.flux.rest.artifacts.authorization.Authorization;
+import com.bonitoo.qa.flux.rest.artifacts.authorization.AuthorizationArray;
+import com.bonitoo.qa.flux.rest.artifacts.telegraf.*;
 import com.bonitoo.qa.influx2.Configuration;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import org.glassfish.jersey.client.ClientConfig;
-import org.glassfish.jersey.client.ClientRequest;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
-import org.glassfish.jersey.internal.util.collection.MultivaluedStringMap;
 import org.influxdata.java.client.InfluxDBClient;
 import org.influxdata.java.client.InfluxDBClientFactory;
 import org.influxdata.java.client.domain.OnboardingResponse;
 import org.influxdata.client.exceptions.UnprocessableEntityException;
 import org.glassfish.jersey.logging.LoggingFeature;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -27,7 +27,6 @@ import org.slf4j.LoggerFactory;
 import javax.ws.rs.client.*;
 import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import java.io.File;
 import java.util.ArrayList;
@@ -36,7 +35,6 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.glassfish.jersey.client.authentication.HttpAuthenticationFeature.*;
 
 public class TestRunner {
 
@@ -45,10 +43,13 @@ public class TestRunner {
 
     private static Configuration Influx2conf = new Configuration();
     private static TestConfig TestConf = new TestConfig();
-    private static InfluxDBClient influxDB;
+    private static InfluxDBClient InfluxDB;
     private static Client Client;
     private static Map<String, Cookie> Cookies = new HashMap<String, Cookie>();
     private static String OrgId;
+    private static String AuthToken;
+    private static String[] DEFAULT_INPUT_PLUGINS = {"cpu", "disk", "diskio", "mem",
+                                                     "net", "processes", "swap", "system"};
 
     @BeforeClass
     public static void setup() throws Exception {
@@ -133,14 +134,17 @@ public class TestRunner {
             influxDBClient.close();
         }
 
-        influxDB = InfluxDBClientFactory.create(TestConf.getInflux2().getUrl(),
+        InfluxDB = InfluxDBClientFactory.create(TestConf.getInflux2().getUrl(),
                 Influx2conf.getToken().toCharArray());
 
+        signIn();
+        fetchOrgId();
+        fetchToken();
+        setupTelegraf();
 
     }
 
-    @Test
-    public void signIn(){
+    public static void signIn(){
 
         HttpAuthenticationFeature feature = HttpAuthenticationFeature.basic(TestConf.getOrg().getAdmin(),
                 TestConf.getOrg().getPassword());
@@ -173,8 +177,8 @@ public class TestRunner {
 
     }
 
-    @Test()
-    public void fetchOrgId(){
+
+    public static void fetchOrgId(){
 
         WebTarget webTarget = Client.target(TestConf.getInflux2APIEndp()).path("orgs");
         Invocation.Builder builder = webTarget.request(MediaType.APPLICATION_JSON);
@@ -197,8 +201,28 @@ public class TestRunner {
 
     }
 
-    @Test
-    public void setupTelegraf(){
+
+    public static void fetchToken(){
+
+        WebTarget webTarget = Client.target(TestConf.getInflux2APIEndp()).path("authorizations");
+        Invocation.Builder builder = webTarget.request(MediaType.APPLICATION_JSON);
+        builder.cookie(Cookies.get("session"));
+
+        Response response = builder.get();
+
+        AuthorizationArray auths = response.readEntity(AuthorizationArray.class);
+
+        System.out.println("DEBUG auths");
+
+        for(Authorization a : auths.getAuthorizations()){
+            System.out.println("   " + a.getId() + " " + a.getToken());
+            AuthToken = a.getToken();
+        }
+
+    }
+
+
+    public static void setupTelegraf(){
 
         WebTarget webTarget = Client.target(TestConf.getInflux2APIEndp()).path("telegrafs");
         Invocation.Builder builder = webTarget.request(MediaType.APPLICATION_JSON);
@@ -211,6 +235,39 @@ public class TestRunner {
 
         System.out.println( response.getStatus() );
         System.out.println( response.readEntity(String.class) );
+
+        List<TelegrafPlugin> plugins = new ArrayList<TelegrafPlugin>();
+
+        List<String> influxUrls = new ArrayList<String>();
+
+        influxUrls.add(TestConf.getInflux2().getUrl());
+
+        plugins.add(new TelegrafPluginInflux2Output(
+                new TelegrafPluginInflux2Conf(influxUrls, AuthToken, TestConf.getOrg().getName(), TestConf.getOrg().getBucket())));
+
+        for(String s : DEFAULT_INPUT_PLUGINS){
+            plugins.add(new TelegrafPluginInput(s));
+        }
+
+
+        TelegrafRequest telegrafReq = new TelegrafRequest(TestConf.getTelegraf().getName(), OrgId, plugins);
+
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        try {
+            String jsonString = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(telegrafReq);
+            System.out.println("DEBUG telegrafReq");
+            System.out.println(jsonString);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+
+        Response r2 = builder.post(Entity.entity(telegrafReq, MediaType.APPLICATION_JSON));
+
+        System.out.println("DEBUG telegraf post response");
+
+        System.out.println(r2.getStatus());
+        System.out.println(r2.readEntity(String.class));
 
     }
 
@@ -230,7 +287,7 @@ public class TestRunner {
     }
 
     public static InfluxDBClient getInfluxDBClient() {
-        return influxDB;
+        return InfluxDB;
     }
 
     public static String getOrgId() {
