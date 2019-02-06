@@ -12,10 +12,10 @@ import org.glassfish.jersey.client.ClientRequest;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.glassfish.jersey.filter.LoggingFilter;
 import org.glassfish.jersey.internal.util.collection.MultivaluedStringMap;
-import org.influxdata.platform.PlatformClient;
-import org.influxdata.platform.PlatformClientFactory;
-import org.influxdata.platform.domain.OnboardingResponse;
-import org.influxdata.platform.error.rest.UnprocessableEntityException;
+import org.influxdata.java.client.InfluxDBClient;
+import org.influxdata.java.client.InfluxDBClientFactory;
+import org.influxdata.java.client.domain.OnboardingResponse;
+import org.influxdata.client.exceptions.UnprocessableEntityException;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -43,7 +43,7 @@ public class TestRunner {
 
     private static Configuration Influx2conf = new Configuration();
     private static TestConfig TestConf = new TestConfig();
-    private static PlatformClient platform;
+    private static InfluxDBClient influxDB;
     private static Client Client;
     private static Map<String, String> Cookies = new HashMap<String, String>();
 
@@ -97,7 +97,7 @@ public class TestRunner {
             //
             // Do onboarding
             //
-            OnboardingResponse response = PlatformClientFactory
+            OnboardingResponse response = InfluxDBClientFactory
                     .onBoarding(TestConf.getInflux2().getUrl(),
                             TestConf.getOrg().getAdmin(),
                             TestConf.getOrg().getPassword(),
@@ -114,23 +114,23 @@ public class TestRunner {
             //
             // Onboarding already done
             //
-            PlatformClient platformClient = PlatformClientFactory.create(
+            InfluxDBClient influxDBClient = InfluxDBClientFactory.create(
                     TestConf.getInflux2().getUrl(),
                     TestConf.getOrg().getAdmin(),
                     TestConf.getOrg().getPassword().toCharArray());
 
-            bucketIDs.add(platformClient.createBucketClient().findBuckets().get(0).getId());
+            bucketIDs.add(influxDBClient.getBucketsApi().findBuckets().get(0).getId());
             Influx2conf.setBucketIds(bucketIDs);
             //bucketID = platformClient.createBucketClient().findBuckets().get(0).getId();
-            Influx2conf.setOrgId(platformClient.createOrganizationClient().findOrganizations().get(0).getId());
+            Influx2conf.setOrgId(influxDBClient.getOrganizationsApi().findOrganizations().get(0).getId());
             //orgID = platformClient.createOrganizationClient().findOrganizations().get(0).getId();
-            Influx2conf.setToken(platformClient.createAuthorizationClient().findAuthorizations().get(0).getToken());
+            Influx2conf.setToken(influxDBClient.getAuthorizationsApi().findAuthorizations().get(0).getToken());
             //token = platformClient.createAuthorizationClient().findAuthorizations().get(0).getToken();
 
-            platformClient.close();
+            influxDBClient.close();
         }
 
-        platform = PlatformClientFactory.create(TestConf.getInflux2().getUrl(),
+        influxDB = InfluxDBClientFactory.create(TestConf.getInflux2().getUrl(),
                 Influx2conf.getToken().toCharArray());
 
 
@@ -185,7 +185,7 @@ public class TestRunner {
         return TestConf;
     }
 
-    public static PlatformClient getPlatform() {
-        return platform;
+    public static InfluxDBClient getInfluxDBClient() {
+        return influxDB;
     }
 }

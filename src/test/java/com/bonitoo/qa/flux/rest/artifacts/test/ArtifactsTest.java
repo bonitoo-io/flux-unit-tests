@@ -3,10 +3,10 @@ package com.bonitoo.qa.flux.rest.artifacts.test;
 import com.bonitoo.qa.TestRunner;
 import com.bonitoo.qa.flux.rest.artifacts.OnBoardRequest;
 import de.vandermeer.asciitable.AsciiTable;
-import org.influxdata.flux.domain.FluxTable;
-import org.influxdata.platform.QueryClient;
-import org.influxdata.platform.WriteClient;
-import org.influxdata.platform.write.Point;
+import org.influxdata.client.flux.domain.FluxTable;
+import org.influxdata.java.client.QueryApi;
+import org.influxdata.java.client.WriteApi;
+import org.influxdata.java.client.writes.Point;
 import org.junit.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +26,7 @@ public class ArtifactsTest {
 
 
     private static OnBoardRequest onbReq;
-    private static QueryClient queryClient;
+    private static QueryApi queryClient;
 
 
     @BeforeClass
@@ -34,7 +34,7 @@ public class ArtifactsTest {
 
         onbReq = new OnBoardRequest("admin", "changeit", "qa", "test-data");
 
-        WriteClient writeClient = TestRunner.getPlatform().createWriteClient();
+        WriteApi writeClient = TestRunner.getInfluxDBClient().getWriteApi();
 
         Instant now = Instant.ofEpochSecond(1548851316);
 
@@ -80,7 +80,7 @@ public class ArtifactsTest {
 
         writeClient.close();
 
-        queryClient = TestRunner.getPlatform().createQueryClient();
+        queryClient = TestRunner.getInfluxDBClient().getQueryApi();
 
     }
 
