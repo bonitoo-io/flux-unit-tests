@@ -12,3 +12,4 @@ influx2:
 telegraf:
    confPath: etc/conf.toml
    confDownload: DEFAULT
+   name: test-telegraf

@@ -1,6 +1,8 @@
 package com.bonitoo.qa;
 
 import com.bonitoo.qa.config.TestConfig;
+import com.bonitoo.qa.flux.rest.artifacts.Organization;
+import com.bonitoo.qa.flux.rest.artifacts.OrganizationArray;
 import com.bonitoo.qa.flux.rest.artifacts.test.ArtifactsTest;
 import com.bonitoo.qa.influx2.Configuration;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -10,8 +12,8 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientRequest;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
-import org.glassfish.jersey.filter.LoggingFilter;
 import org.glassfish.jersey.internal.util.collection.MultivaluedStringMap;
+import org.glassfish.jersey.logging.LoggingFeature;
 import org.influxdata.platform.PlatformClient;
 import org.influxdata.platform.PlatformClientFactory;
 import org.influxdata.platform.domain.OnboardingResponse;
@@ -45,7 +47,8 @@ public class TestRunner {
     private static TestConfig TestConf = new TestConfig();
     private static PlatformClient platform;
     private static Client Client;
-    private static Map<String, String> Cookies = new HashMap<String, String>();
+    private static Map<String, Cookie> Cookies = new HashMap<String, Cookie>();
+    private static String OrgId;
 
     @BeforeClass
     public static void setup() throws Exception {
@@ -142,7 +145,7 @@ public class TestRunner {
         HttpAuthenticationFeature feature = HttpAuthenticationFeature.basic(TestConf.getOrg().getAdmin(),
                 TestConf.getOrg().getPassword());
 
-        Client = ClientBuilder.newClient( new ClientConfig().register(LoggingFilter.class));
+        Client = ClientBuilder.newClient( new ClientConfig().register(LoggingFeature.class));
         Client.register(feature);
 
         WebTarget webTarget = Client.target(TestConf.getInflux2().getUrl() + TestConf.getInflux2().getApi()).path("signin");
@@ -159,7 +162,7 @@ public class TestRunner {
         System.out.println( "cookies");
 
         for(String key : response.getCookies().keySet()){
-            Cookies.put(key, response.getCookies().get(key).toString());
+            Cookies.put(key, response.getCookies().get(key));
             System.out.println( key + ": " + response.getCookies().get(key));
         }
 
@@ -167,6 +170,47 @@ public class TestRunner {
         for(String k : Cookies.keySet()){
             System.out.println("   " + k + ": " + Cookies.get(k));
         }
+
+    }
+
+    @Test()
+    public void fetchOrgId(){
+
+        WebTarget webTarget = Client.target(TestConf.getInflux2APIEndp()).path("orgs");
+        Invocation.Builder builder = webTarget.request(MediaType.APPLICATION_JSON);
+        builder.cookie(Cookies.get("session"));
+
+        Response response = builder.get();
+
+        OrganizationArray orgArray = response.readEntity(OrganizationArray.class );
+
+        System.out.println("DEBUG orgArray");
+
+        //System.out.println(response.readEntity(String.class));
+
+       for(Organization o : orgArray.getOrgs()){
+            System.out.println(o.getId() + " " + o.getName());
+        }
+
+       //should be only 1 org
+        OrgId = orgArray.getOrgs().get(0).getId();
+
+    }
+
+    @Test
+    public void setupTelegraf(){
+
+        WebTarget webTarget = Client.target(TestConf.getInflux2APIEndp()).path("telegrafs");
+        Invocation.Builder builder = webTarget.request(MediaType.APPLICATION_JSON);
+        builder.cookie(Cookies.get("session"));
+
+        //TODO - this is just prelim check of cookie - next need to put TelegrafRequest
+        Response response = builder.get();
+
+        System.out.println("DEBUG endp telegrafs");
+
+        System.out.println( response.getStatus() );
+        System.out.println( response.readEntity(String.class) );
 
     }
 
@@ -187,5 +231,9 @@ public class TestRunner {
 
     public static PlatformClient getPlatform() {
         return platform;
+    }
+
+    public static String getOrgId() {
+        return OrgId;
     }
 }
