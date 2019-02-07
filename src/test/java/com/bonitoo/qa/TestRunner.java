@@ -10,10 +10,12 @@ import com.bonitoo.qa.influx2.Configuration;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import de.vandermeer.asciitable.AsciiTable;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
+import org.influxdata.client.flux.domain.FluxTable;
 import org.influxdata.java.client.InfluxDBClient;
 import org.influxdata.java.client.InfluxDBClientFactory;
 import org.influxdata.java.client.domain.OnboardingResponse;
@@ -24,6 +26,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import javax.ws.rs.client.*;
 import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.MediaType;
@@ -36,6 +39,9 @@ import java.net.URLConnection;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -143,6 +149,10 @@ public class TestRunner {
         fetchToken();
         setupTelegraf();
         restartTelegraf();
+
+        //wait 30 sec for telegraf to generate some points
+        LOG.info("Waiting 60 sec for telegraf to generate points");
+        Thread.sleep(60000);
 
     }
 
@@ -274,6 +284,49 @@ public class TestRunner {
         }
 
     }
+
+    public static void printTables(final String flux, @Nonnull final List<FluxTable> tables){
+        AsciiTable at = new AsciiTable();
+
+        at.addRule();
+        at.addRow("table", "_start", "_stop", "_time", "_measurement", "_field", "_value");
+        at.addRule();
+
+        tables.forEach(table -> table.getRecords().forEach(record -> {
+
+            String tableIndex = format(record.getTable());
+            String start = format(record.getStart());
+            String stop = format(record.getStop());
+            String time = format(record.getTime());
+
+            String measurement = format(record.getMeasurement());
+            String field = format(record.getField());
+            String value = format(record.getValue());
+
+            at.addRow(tableIndex, start, stop, time, measurement, field, value);
+            at.addRule();
+        }));
+
+        LOG.info("\n\nQuery:\n\n{}\n\nResult:\n\n{}\n", flux, at.render(150));
+
+    }
+
+    private static String format(final Object start) {
+
+        if (start == null) {
+            return "";
+        }
+
+        if (start instanceof Instant) {
+
+            return DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                    .withZone(ZoneId.systemDefault())
+                    .format((Instant) start);
+        }
+
+        return start.toString();
+    }
+
 
 
     @Test
