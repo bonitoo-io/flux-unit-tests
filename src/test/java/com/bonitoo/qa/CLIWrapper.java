@@ -6,9 +6,14 @@ import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.reader.StreamReader;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.attribute.FileAttribute;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
+import java.util.Set;
 
 public class CLIWrapper {
 
@@ -27,18 +32,42 @@ public class CLIWrapper {
         CONTINUE;
     }
 
-    public static void RUN_CMDX(SUDO useSudo, WAIT wait, String command, String ... args) throws NotImplementedException, IOException, InterruptedException {
+    private static SUDO DO_SUDO = SUDO.SUDO;
+    private static WAIT DO_WAIT = WAIT.WAIT;
+    private static int EXIT_VAL = 0;
+
+    public static SUDO getDO_SUDO() {
+        return DO_SUDO;
+    }
+
+    public static void setDO_SUDO(SUDO DO_SUDO) {
+        DO_SUDO = DO_SUDO;
+    }
+
+    public static WAIT getDO_WAIT() {
+        return DO_WAIT;
+    }
+
+    public static void setDO_WAIT(WAIT DO_WAIT) {
+        DO_WAIT = DO_WAIT;
+    }
+
+    public static int getExitVal() {
+        return EXIT_VAL;
+    }
+
+    public static void RUN_CMDX(String command, String ... args) throws NotImplementedException, IOException, InterruptedException {
 
         if(System.getProperty("os.name").startsWith("Windows")) {
             throw new UnsupportedOperationException("Windows not supported");
         }
         //tbd
-        int cmdsLen = (useSudo == SUDO.SUDO) ? args.length + 2 : args.length + 1;
+        int cmdsLen = (DO_SUDO == SUDO.SUDO) ? args.length + 2 : args.length + 1;
         int argsIndex = 1;
 
         String [] cmds = new String[cmdsLen];
 
-        if(useSudo == SUDO.SUDO){
+        if(DO_SUDO == SUDO.SUDO){
             cmds[0] = "sudo";
             cmds[1] = command;
             argsIndex = 2;
@@ -56,8 +85,9 @@ public class CLIWrapper {
                 .command(cmds)
                 .start();
 
-        if(wait == WAIT.WAIT){
+        if(DO_WAIT == WAIT.WAIT){
             p.waitFor();
+            EXIT_VAL = p.exitValue();
         }
 
         BufferedReader reader =
@@ -77,6 +107,25 @@ public class CLIWrapper {
     }
 
     public static void WRITE_SCRIPT(String script, String scriptPath){
+
+        try {
+            if(!Files.exists(Paths.get(scriptPath))){
+                Set<PosixFilePermission> permissions = PosixFilePermissions.fromString("rwxrw-rw-");
+                FileAttribute<Set<PosixFilePermission>> fileAttributes = PosixFilePermissions
+                        .asFileAttribute(permissions);
+                Files.createFile(Paths.get(scriptPath), fileAttributes);
+            }
+
+            File scriptFile = new File(scriptPath);
+            FileOutputStream fos = new FileOutputStream(scriptFile);
+            fos.write(script.getBytes());
+            fos.close();
+        }catch(FileNotFoundException e){
+            LOG.warn(e.getMessage(), e);
+
+        }catch(IOException e) {
+            LOG.warn(e.getMessage(), e);
+        }
 
     }
 

@@ -11,5 +11,4 @@ influx2:
    build: nightly
 telegraf:
    confPath: etc/conf.toml
-   confDownload: DEFAULT
    name: test-telegraf

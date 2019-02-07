@@ -7,11 +7,13 @@ import java.util.List;
 public class TelegrafRequest {
 
     private String name;
+    private Agent agent;
     private String organizationID;
     private List<TelegrafPlugin> plugins;
 
-    public TelegrafRequest(String name, String organizationID, List<TelegrafPlugin> plugins) {
+    public TelegrafRequest(String name, Agent agent, String organizationID, List<TelegrafPlugin> plugins) {
         this.name = name;
+        this.agent = agent;
         this.organizationID = organizationID;
         this.plugins = plugins;
     }
@@ -22,6 +24,14 @@ public class TelegrafRequest {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public Agent getAgent() {
+        return agent;
+    }
+
+    public void setAgent(Agent agent) {
+        this.agent = agent;
     }
 
     public String getOrganizationID() {

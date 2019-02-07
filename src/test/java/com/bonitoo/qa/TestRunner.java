@@ -29,6 +29,13 @@ import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.nio.channels.Channels;
+import java.nio.channels.FileChannel;
+import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -54,7 +61,6 @@ public class TestRunner {
     @BeforeClass
     public static void setup() throws Exception {
 
-        System.out.println("DEBUG setting up lowest level class in file system");
 
         ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
 
@@ -66,35 +72,30 @@ public class TestRunner {
             TestConf.setInflux2(testConfig.getInflux2());
             TestConf.setTelegraf(testConfig.getTelegraf());
 
-            System.out.println(ReflectionToStringBuilder.toString(testConfig.getOrg(), ToStringStyle.MULTI_LINE_STYLE));
-            System.out.println(ReflectionToStringBuilder.toString(testConfig.getInflux2(), ToStringStyle.MULTI_LINE_STYLE));
-            System.out.println(ReflectionToStringBuilder.toString(testConfig.getTelegraf(), ToStringStyle.MULTI_LINE_STYLE));
-
         } catch (Exception e) {
 
-            // TODO Auto-generated catch block
-
-            e.printStackTrace();
+            LOG.error(e.getMessage(), e);
+            throw(e);
 
         }
 
 
         LOG.info("Starting influx2 docker " + TestConf.getInflux2().getBuild() + " build.");
 
+        CLIWrapper.setDO_SUDO(CLIWrapper.SUDO.SUDO);
+        CLIWrapper.setDO_WAIT(CLIWrapper.WAIT.WAIT);
+
         if(TestConf.getInflux2().getBuild().toUpperCase().contains("ALPHA")){
             //Pull and Start influxd nightly from script alpha release
-            CLIWrapper.RUN_CMDX(CLIWrapper.SUDO.SUDO,
-                    CLIWrapper.WAIT.WAIT,
-                    CLIWrapper.getInflux2Script(), "-a");
+            CLIWrapper.RUN_CMDX(CLIWrapper.getInflux2Script(), "-a");
 
         }else{
             //Pull and Start influxd nightly from script
-            CLIWrapper.RUN_CMDX(CLIWrapper.SUDO.SUDO,
-                    CLIWrapper.WAIT.WAIT,
-                    CLIWrapper.getInflux2Script());
+            CLIWrapper.RUN_CMDX(CLIWrapper.getInflux2Script());
         }
 
         List<String> bucketIDs = new ArrayList<String>();
+
 
         try {
 
@@ -141,6 +142,7 @@ public class TestRunner {
         fetchOrgId();
         fetchToken();
         setupTelegraf();
+        restartTelegraf();
 
     }
 
@@ -159,20 +161,9 @@ public class TestRunner {
         Response response = builder.post(Entity.text(""));
 
 
-        System.out.println("DEBUG jersey");
-
-        System.out.println( response.getStatus() );
-        System.out.println( response.readEntity(String.class) );
-        System.out.println( "cookies");
 
         for(String key : response.getCookies().keySet()){
             Cookies.put(key, response.getCookies().get(key));
-            System.out.println( key + ": " + response.getCookies().get(key));
-        }
-
-        System.out.println("DEBUG cookie jar");
-        for(String k : Cookies.keySet()){
-            System.out.println("   " + k + ": " + Cookies.get(k));
         }
 
     }
@@ -187,14 +178,6 @@ public class TestRunner {
         Response response = builder.get();
 
         OrganizationArray orgArray = response.readEntity(OrganizationArray.class );
-
-        System.out.println("DEBUG orgArray");
-
-        //System.out.println(response.readEntity(String.class));
-
-       for(Organization o : orgArray.getOrgs()){
-            System.out.println(o.getId() + " " + o.getName());
-        }
 
        //should be only 1 org
         OrgId = orgArray.getOrgs().get(0).getId();
@@ -212,29 +195,17 @@ public class TestRunner {
 
         AuthorizationArray auths = response.readEntity(AuthorizationArray.class);
 
-        System.out.println("DEBUG auths");
-
-        for(Authorization a : auths.getAuthorizations()){
-            System.out.println("   " + a.getId() + " " + a.getToken());
-            AuthToken = a.getToken();
-        }
+        //Should be only 1 auth
+        AuthToken = auths.getAuthorizations().get(0).getToken();
 
     }
 
 
-    public static void setupTelegraf(){
+    public static void setupTelegraf() throws IOException{
 
         WebTarget webTarget = Client.target(TestConf.getInflux2APIEndp()).path("telegrafs");
         Invocation.Builder builder = webTarget.request(MediaType.APPLICATION_JSON);
         builder.cookie(Cookies.get("session"));
-
-        //TODO - this is just prelim check of cookie - next need to put TelegrafRequest
-        Response response = builder.get();
-
-        System.out.println("DEBUG endp telegrafs");
-
-        System.out.println( response.getStatus() );
-        System.out.println( response.readEntity(String.class) );
 
         List<TelegrafPlugin> plugins = new ArrayList<TelegrafPlugin>();
 
@@ -250,24 +221,57 @@ public class TestRunner {
         }
 
 
-        TelegrafRequest telegrafReq = new TelegrafRequest(TestConf.getTelegraf().getName(), OrgId, plugins);
+        TelegrafRequest telegrafReq = new TelegrafRequest(TestConf.getTelegraf().getName(),
+                new Agent(),
+                OrgId,
+                plugins);
 
-        ObjectMapper objectMapper = new ObjectMapper();
+//        ObjectMapper objectMapper = new ObjectMapper();
 
-        try {
-            String jsonString = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(telegrafReq);
-            System.out.println("DEBUG telegrafReq");
-            System.out.println(jsonString);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            String jsonString = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(telegrafReq);
+//            System.out.println("DEBUG telegrafReq");
+//            System.out.println(jsonString);
+//        } catch (JsonProcessingException e) {
+//            LOG.warn(e.getMessage(), e);
+//        }
 
         Response r2 = builder.post(Entity.entity(telegrafReq, MediaType.APPLICATION_JSON));
 
-        System.out.println("DEBUG telegraf post response");
+        Telegraf telegraf = r2.readEntity(Telegraf.class);
 
-        System.out.println(r2.getStatus());
-        System.out.println(r2.readEntity(String.class));
+        //Download config
+
+        URL url = new URL(TestConf.getInflux2APIEndp() + "/telegrafs/" + telegraf.getId());
+        URLConnection urlConnection = url.openConnection();
+        urlConnection.addRequestProperty("Cookie", Cookies.get("session").toString());
+        ReadableByteChannel readableByteChannel = Channels.newChannel(urlConnection.getInputStream());
+        FileOutputStream fileOutputStream = new FileOutputStream(TestConf.getTelegraf().getConfPath());
+        fileOutputStream.getChannel().transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
+
+    }
+
+    public static void restartTelegraf() throws IOException {
+
+        String telegrafStartScript = String.format("#!/bin/sh\n" +
+                "\n" +
+                "telegraf --config %s > /tmp/telegraf.log 2>&1 &\n", System.getProperty("user.dir") +
+                File.separator +
+                TestConf.getTelegraf().getConfPath());
+
+        CLIWrapper.WRITE_SCRIPT(telegrafStartScript, "etc/telegraf_start.sh");
+
+        try {
+            CLIWrapper.setDO_SUDO(CLIWrapper.SUDO.SUDO);
+            CLIWrapper.setDO_WAIT(CLIWrapper.WAIT.WAIT);
+            //stop any running telegraf
+            CLIWrapper.RUN_CMDX("systemctl", "stop", "telegraf.service");
+            CLIWrapper.RUN_CMDX("pkill", "-f", "telegraf");
+            //start telegraf using script above
+            CLIWrapper.RUN_CMDX("etc/telegraf_start.sh");
+        } catch (InterruptedException e) {
+            LOG.error(e.getMessage(), e);
+        }
 
     }
 
