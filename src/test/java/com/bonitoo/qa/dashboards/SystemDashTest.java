@@ -2,8 +2,8 @@ package com.bonitoo.qa.dashboards;
 
 import com.bonitoo.qa.CLIWrapper;
 import com.bonitoo.qa.TestRunner;
-import org.influxdata.query.FluxTable;
 import org.influxdata.client.QueryApi;
+import org.influxdata.query.FluxTable;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -158,12 +158,20 @@ public class SystemDashTest {
 
         System.out.println("DEBUG query: " + query);
 
-
         List<FluxTable> tables = queryClient.query(query, TestRunner.getInflux2conf().getOrgId());
 
         assertThat(tables.size()).isGreaterThan(0);
 
-        //TODO table assertions
+        tables.forEach(table -> {
+            assertThat(table.getRecords().size()).isGreaterThan(0);
+            table.getRecords().forEach(record -> {
+                assertThat(record.getMeasurement()).isEqualTo("system");
+                assertThat(record.getField()).isEqualTo("uptime");
+                assertThat(record.getValue() instanceof Long).isTrue();
+                assertThat((Long) record.getValue()).isGreaterThanOrEqualTo(0);
+            });
+        });
+
 
         //for fun and inspection
         TestRunner.printTables(query, tables);
