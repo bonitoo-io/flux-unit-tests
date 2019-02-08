@@ -1,8 +1,8 @@
 package com.bonitoo.qa.dashboards;
 
 import com.bonitoo.qa.TestRunner;
-import org.influxdata.client.flux.domain.FluxTable;
-import org.influxdata.java.client.QueryApi;
+import org.influxdata.query.FluxTable;
+import org.influxdata.client.QueryApi;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
