@@ -72,6 +72,9 @@ public class SystemDashTest {
 
         assertThat(tables.size()).isGreaterThan(0);
 
+        //for fun and inspection
+        TestRunner.printTables(query, tables);
+
         tables.forEach(table -> {
             assertThat(table.getRecords().size()).isGreaterThan(0);
             table.getRecords().forEach(record -> {
@@ -83,22 +86,11 @@ public class SystemDashTest {
 
         });
 
-        //for fun and inspection
-        TestRunner.printTables(query, tables);
-
     }
 //                System.out.println("Debug value.getClass(): " + record.getValue().getClass());
 
     @Test
     public void SystemLoadTest(){
-
-        String hostname = null;
-
-        try {
-            hostname = CLIWrapper.ExecReadToString("hostname").trim();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
 
         String query = String.format("dashboardTime = -15m\n" +
                 "autoInterval = 30s\n\n" +
@@ -108,11 +100,14 @@ public class SystemDashTest {
                 "  |> window(every: autoInterval)\n" +
                 "  |> group(columns: [\"_field\"], mode: \"by\")",
                 TestRunner.getTestConf().getOrg().getBucket(),
-                hostname);
+                TestRunner.getTestConf().getHostname());
 
         List<FluxTable> tables = queryClient.query(query, TestRunner.getInflux2conf().getOrgId());
 
         assertThat(tables.size()).isGreaterThan(0);
+
+        //for fun and inspection
+        TestRunner.printTables(query, tables);
 
         tables.forEach(table -> {
                     assertThat(table.getRecords().size()).isGreaterThan(0);
@@ -126,21 +121,10 @@ public class SystemDashTest {
                     });
                 });
 
-        //for fun and inspection
-        TestRunner.printTables(query, tables);
-
     }
 
     @Test
     public void SystemUptimeTest(){
-
-        String hostname = null;
-
-        try {
-            hostname = CLIWrapper.ExecReadToString("hostname").trim();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
 
         //changed r._value / 86400 to r._value / 1 because telegraf will have been up only a few minutes
 
@@ -154,13 +138,14 @@ public class SystemDashTest {
                 "  |> last()\n" +
                 "  |> group(columns: [\"_time\", \"_start\", \"_stop\", \"_value\"], mode: \"except\")",
                 TestRunner.getTestConf().getOrg().getBucket(),
-                hostname);
-
-        System.out.println("DEBUG query: " + query);
+                TestRunner.getTestConf().getHostname());
 
         List<FluxTable> tables = queryClient.query(query, TestRunner.getInflux2conf().getOrgId());
 
         assertThat(tables.size()).isGreaterThan(0);
+
+        //for fun and inspection
+        TestRunner.printTables(query, tables);
 
         tables.forEach(table -> {
             assertThat(table.getRecords().size()).isGreaterThan(0);
@@ -173,8 +158,45 @@ public class SystemDashTest {
         });
 
 
-        //for fun and inspection
+
+    }
+
+    @Test
+    public void NetworkTest(){
+
+        String query = String.format("dashboardTime = -15m\n" +
+                "from(bucket: \"%s\")\n" +
+                "  |> range(start: dashboardTime)\n" +
+                "  |> filter(fn: (r) => r._measurement == \"net\" and r.host==\"%s\" and (r._field == \"bytes_sent\" or r._field == \"bytes_recv\"))\n" +
+                "  |> derivative(unit: 1s, nonNegative: true, columns: [\"_value\"])\n" +
+                "  |> group(columns: [\"_field\"], mode: \"by\" )",
+                TestRunner.getTestConf().getOrg().getBucket(),
+                TestRunner.getTestConf().getHostname());
+
+        System.out.println("DEBUG query: " + query);
+
+        List<FluxTable> tables = queryClient.query(query, TestRunner.getInflux2conf().getOrgId());
+
+        assertThat(tables.size()).isGreaterThan(0);
+
         TestRunner.printTables(query, tables);
+
+        tables.forEach(table -> {
+            assertThat(table.getRecords().size()).isGreaterThan(0);
+            table.getRecords().forEach(record -> {
+                assertThat(record.getMeasurement()).isEqualTo("net");
+                assertThat(record.getField().equals("bytes_recv") ||
+                        record.getField().equals("bytes_sent")).isTrue();
+                assertThat(record.getValue() instanceof Double).isTrue();
+                assertThat((Double) record.getValue()).isGreaterThanOrEqualTo(0);
+            });
+        });
+
+
+    }
+
+    @Test
+    public void DiskIOTest(){
 
     }
 

@@ -1,10 +1,34 @@
 package com.bonitoo.qa.config;
 
+import com.bonitoo.qa.CLIWrapper;
+
+import java.io.IOException;
+
 public class TestConfig {
 
+    String hostname;
     Org org = new Org();
     Influx2 influx2 = new Influx2();
     Telegraf telegraf = new Telegraf();
+
+    public TestConfig(){
+
+        try {
+            hostname = CLIWrapper.ExecReadToString("hostname").trim();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public String getHostname() {
+        return hostname;
+    }
+
+    public void setHostname(String hostname) {
+
+            this.hostname = hostname;
+    }
 
     public Org getOrg() {
         return org;

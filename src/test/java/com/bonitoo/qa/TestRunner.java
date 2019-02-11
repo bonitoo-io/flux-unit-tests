@@ -67,11 +67,7 @@ public class TestRunner {
 
         try {
 
-            TestConfig testConfig = mapper.readValue(new File("testConfig.yml"), TestConfig.class);
-
-            TestConf.setOrg(testConfig.getOrg());
-            TestConf.setInflux2(testConfig.getInflux2());
-            TestConf.setTelegraf(testConfig.getTelegraf());
+            TestConf = mapper.readValue(new File("testConfig.yml"), TestConfig.class);
 
         } catch (Exception e) {
 
