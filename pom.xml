@@ -147,6 +147,7 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>2.20</version>
                 <configuration>
+                    <runOrder>filesystem</runOrder>
                     <!-- skip>true</skip -->
                     <argLine>-Dfile.encoding=${project.build.sourceEncoding}</argLine>
                 </configuration>
@@ -155,7 +156,6 @@
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <version>2.20</version>
                 <configuration>
-                    <runOrder>filesystem</runOrder>
                     <useSystemClassLoader>true</useSystemClassLoader>
                     <useManifestOnlyJar>false</useManifestOnlyJar>
                     <includes>
