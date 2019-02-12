@@ -318,11 +318,13 @@ public class SetupTestSuite {
     }
 
 
+    /*
+      N.B. - if class contains no @Test then static @BeforeClass methods not called
+     */
 
     @Test
     public void something(){
-        System.out.println("Something test");
-        assertThat(true).isEqualTo(true);
+        System.out.println("Empty test case - to trigger class setup");
     }
 
     public static Configuration getInflux2conf() {

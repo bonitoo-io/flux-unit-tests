@@ -29,15 +29,10 @@ public class ArtifactsTestSuite {
 
     private static final Logger LOG = LoggerFactory.getLogger(ArtifactsTestSuite.class);
 
-
-    private static OnBoardRequest onbReq;
     private static QueryApi queryClient;
-
 
     @BeforeClass
     public static void initTest() {
-
-        onbReq = new OnBoardRequest("admin", "changeit", "qa", "test-data");
 
         WriteApi writeClient = SetupTestSuite.getInfluxDBClient().getWriteApi();
 
@@ -100,36 +95,6 @@ public class ArtifactsTestSuite {
     }
 
     @Test
-    public void testOnboard() {
-
-        assertThat(onbReq.getUsername()).isEqualTo("admin");
-        assertThat(onbReq.getPassword()).isEqualTo("changeit");
-        assertThat(onbReq.getOrg()).isEqualTo("qa");
-        assertThat(onbReq.getBucket()).isEqualTo("test-data");
-        //assertEquals(7, result);
-    }
-
-    @Test
-    public void testConfig(){
-
-        System.out.println("Orgname: " + SetupTestSuite.getTestConf().getOrg().getName());
-        System.out.println("Admin: " + SetupTestSuite.getTestConf().getOrg().getAdmin());
-        System.out.println("Password: " + SetupTestSuite.getTestConf().getOrg().getPassword());
-        System.out.println("Bucket: " + SetupTestSuite.getTestConf().getOrg().getBucket());
-
-        System.out.println("Influx2 URL: " + SetupTestSuite.getTestConf().getInflux2().getUrl());
-        System.out.println("Influx2 API: " + SetupTestSuite.getTestConf().getInflux2().getApi());
-
-    }
-
-    @Test
-    public void testInfluxsConfig(){
-        System.out.println("OrgId: " + SetupTestSuite.getInflux2conf().getOrgId());
-        System.out.println("First Bucket: " + SetupTestSuite.getInflux2conf().getBucketIds().get(0));
-        System.out.println("Token: " + SetupTestSuite.getInflux2conf().getToken());
-    }
-
-    @Test
     public void simpleQuery(){
 
         // Last Mensuration
@@ -142,72 +107,10 @@ public class ArtifactsTestSuite {
 
         List<FluxTable> tables = queryClient.query(flux, SetupTestSuite.getInflux2conf().getOrgId());
 
-        printResult(flux, tables);
+        assertThat(tables.size()).isGreaterThan(0);
 
-    }
+        SetupTestSuite.printTables(flux, tables);
 
-    //because I haven't done this in a while
-    @Test
-    public void testFail(){
-        assertThat(true).isFalse();
-    }
-
-
-    @Ignore
-    @Test
-    public void testFalse() {
-
-        assertThat(false).isFalse();
-    }
-
-    @Ignore
-    @Test
-    public void testSubstraction() {
-        int result = 10 - 3;
-
-        assertThat(result).isEqualTo(9);
-    }
-
-    private void printResult(final String flux, @Nonnull final List<FluxTable> tables) {
-
-        AsciiTable at = new AsciiTable();
-
-        at.addRule();
-        at.addRow("table", "_start", "_stop", "_time", "_measurement", "_field", "_value");
-        at.addRule();
-
-        tables.forEach(table -> table.getRecords().forEach(record -> {
-
-            String tableIndex = format(record.getTable());
-            String start = format(record.getStart());
-            String stop = format(record.getStop());
-            String time = format(record.getTime());
-
-            String measurement = format(record.getMeasurement());
-            String field = format(record.getField());
-            String value = format(record.getValue());
-
-            at.addRow(tableIndex, start, stop, time, measurement, field, value);
-            at.addRule();
-        }));
-
-        LOG.info("\n\nQuery:\n\n{}\n\nResult:\n\n{}\n", flux, at.render(150));
-    }
-
-    private String format(final Object start) {
-
-        if (start == null) {
-            return "";
-        }
-
-        if (start instanceof Instant) {
-
-            return DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-                    .withZone(ZoneId.systemDefault())
-                    .format((Instant) start);
-        }
-
-        return start.toString();
     }
 
 }
