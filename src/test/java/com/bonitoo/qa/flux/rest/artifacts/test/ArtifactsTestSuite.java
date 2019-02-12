@@ -23,7 +23,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 /**
  * TODO - review what relavence these tests actually have -
  */
-/
+
 
 public class ArtifactsTestSuite {
 
