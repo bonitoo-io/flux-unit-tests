@@ -25,7 +25,7 @@ Console results.
 [INFO] -------------------------------------------------------
 [INFO]  T E S T S
 [INFO] -------------------------------------------------------
-[INFO] Running com.bonitoo.qa.TestRunner
+[INFO] Running com.bonitoo.qa.SetupTestSuite
 DEBUG setting up lowest level class in file system
 com.bonitoo.qa.config.Org@7ba18f1b[
   name=qa
@@ -38,8 +38,8 @@ com.bonitoo.qa.config.Influx2@2f8f5f62[
   api=/api/v2
 ]
 Something test
-[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.679 s - in com.bonitoo.qa.TestRunner
-[INFO] Running com.bonitoo.qa.flux.rest.artifacts.test.ArtifactsTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.679 s - in com.bonitoo.qa.SetupTestSuite
+[INFO] Running com.bonitoo.qa.flux.rest.artifacts.test.ArtifactsTestSuite
 Feb 01, 2019 4:48:55 PM org.influxdata.platform.impl.AbstractWriteClient close
 INFO: Flushing any cached BatchWrites before shutdown.
 OrgId: 03566f41d3d44000
@@ -76,10 +76,10 @@ Password: changeit
 Bucket: test-data
 Influx2 URL: http://localhost:9999
 Influx2 API: /api/v2
-[ERROR] Tests run: 7, Failures: 1, Errors: 0, Skipped: 2, Time elapsed: 0.244 s <<< FAILURE! - in com.bonitoo.qa.flux.rest.artifacts.test.ArtifactsTest
-[ERROR] testFail(com.bonitoo.qa.flux.rest.artifacts.test.ArtifactsTest)  Time elapsed: 0.007 s  <<< FAILURE!
+[ERROR] Tests run: 7, Failures: 1, Errors: 0, Skipped: 2, Time elapsed: 0.244 s <<< FAILURE! - in com.bonitoo.qa.flux.rest.artifacts.test.ArtifactsTestSuite
+[ERROR] testFail(com.bonitoo.qa.flux.rest.artifacts.test.ArtifactsTestSuite)  Time elapsed: 0.007 s  <<< FAILURE!
 org.junit.ComparisonFailure: expected:<[fals]e> but was:<[tru]e>
-	at com.bonitoo.qa.flux.rest.artifacts.test.ArtifactsTest.testFail(ArtifactsTest.java:147)
+	at com.bonitoo.qa.flux.rest.artifacts.test.ArtifactsTestSuite.testFail(ArtifactsTest.java:147)
 
 [INFO]
 [INFO] Results:

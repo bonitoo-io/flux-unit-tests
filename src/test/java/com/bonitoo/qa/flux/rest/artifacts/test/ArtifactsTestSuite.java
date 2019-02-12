@@ -1,6 +1,6 @@
 package com.bonitoo.qa.flux.rest.artifacts.test;
 
-import com.bonitoo.qa.TestRunner;
+import com.bonitoo.qa.SetupTestSuite;
 import com.bonitoo.qa.flux.rest.artifacts.OnBoardRequest;
 import de.vandermeer.asciitable.AsciiTable;
 import org.influxdata.client.QueryApi;
@@ -20,9 +20,14 @@ import java.util.List;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-public class ArtifactsTest {
+/**
+ * TODO - review what relavence these tests actually have -
+ */
+/
 
-    private static final Logger LOG = LoggerFactory.getLogger(ArtifactsTest.class);
+public class ArtifactsTestSuite {
+
+    private static final Logger LOG = LoggerFactory.getLogger(ArtifactsTestSuite.class);
 
 
     private static OnBoardRequest onbReq;
@@ -34,7 +39,7 @@ public class ArtifactsTest {
 
         onbReq = new OnBoardRequest("admin", "changeit", "qa", "test-data");
 
-        WriteApi writeClient = TestRunner.getInfluxDBClient().getWriteApi();
+        WriteApi writeClient = SetupTestSuite.getInfluxDBClient().getWriteApi();
 
         Instant now = Instant.ofEpochSecond(1548851316);
 
@@ -48,8 +53,8 @@ public class ArtifactsTest {
                 .addField("battery_voltage", 2.6)
                 .time(now, ChronoUnit.SECONDS);
 
-        writeClient.writePoint(TestRunner.getInflux2conf().getBucketIds().get(0),
-                TestRunner.getInflux2conf().getOrgId(),
+        writeClient.writePoint(SetupTestSuite.getInflux2conf().getBucketIds().get(0),
+                SetupTestSuite.getInflux2conf().getOrgId(),
                 weatherOutdoor1);
 
         // Mensuration 2
@@ -62,8 +67,8 @@ public class ArtifactsTest {
                 .addField("battery_voltage", 2.6)
                 .time(now.plus(10, ChronoUnit.SECONDS), ChronoUnit.SECONDS);
 
-        writeClient.writePoint(TestRunner.getInflux2conf().getBucketIds().get(0),
-                TestRunner.getInflux2conf().getOrgId(), weatherOutdoor2);
+        writeClient.writePoint(SetupTestSuite.getInflux2conf().getBucketIds().get(0),
+                SetupTestSuite.getInflux2conf().getOrgId(), weatherOutdoor2);
 
         // Mensuration 3
         Point weatherOutdoor3 = Point.measurement("weather_outdoor")
@@ -75,12 +80,12 @@ public class ArtifactsTest {
                 .addField("battery_voltage", 2.6)
                 .time(now.plus(20, ChronoUnit.SECONDS), ChronoUnit.SECONDS);
 
-        writeClient.writePoint(TestRunner.getInflux2conf().getBucketIds().get(0),
-                TestRunner.getInflux2conf().getOrgId(), weatherOutdoor3);
+        writeClient.writePoint(SetupTestSuite.getInflux2conf().getBucketIds().get(0),
+                SetupTestSuite.getInflux2conf().getOrgId(), weatherOutdoor3);
 
         writeClient.close();
 
-        queryClient = TestRunner.getInfluxDBClient().getQueryApi();
+        queryClient = SetupTestSuite.getInfluxDBClient().getQueryApi();
 
     }
 
@@ -107,35 +112,35 @@ public class ArtifactsTest {
     @Test
     public void testConfig(){
 
-        System.out.println("Orgname: " + TestRunner.getTestConf().getOrg().getName());
-        System.out.println("Admin: " + TestRunner.getTestConf().getOrg().getAdmin());
-        System.out.println("Password: " + TestRunner.getTestConf().getOrg().getPassword());
-        System.out.println("Bucket: " + TestRunner.getTestConf().getOrg().getBucket());
+        System.out.println("Orgname: " + SetupTestSuite.getTestConf().getOrg().getName());
+        System.out.println("Admin: " + SetupTestSuite.getTestConf().getOrg().getAdmin());
+        System.out.println("Password: " + SetupTestSuite.getTestConf().getOrg().getPassword());
+        System.out.println("Bucket: " + SetupTestSuite.getTestConf().getOrg().getBucket());
 
-        System.out.println("Influx2 URL: " + TestRunner.getTestConf().getInflux2().getUrl());
-        System.out.println("Influx2 API: " + TestRunner.getTestConf().getInflux2().getApi());
+        System.out.println("Influx2 URL: " + SetupTestSuite.getTestConf().getInflux2().getUrl());
+        System.out.println("Influx2 API: " + SetupTestSuite.getTestConf().getInflux2().getApi());
 
     }
 
     @Test
     public void testInfluxsConfig(){
-        System.out.println("OrgId: " + TestRunner.getInflux2conf().getOrgId());
-        System.out.println("First Bucket: " + TestRunner.getInflux2conf().getBucketIds().get(0));
-        System.out.println("Token: " + TestRunner.getInflux2conf().getToken());
+        System.out.println("OrgId: " + SetupTestSuite.getInflux2conf().getOrgId());
+        System.out.println("First Bucket: " + SetupTestSuite.getInflux2conf().getBucketIds().get(0));
+        System.out.println("Token: " + SetupTestSuite.getInflux2conf().getToken());
     }
 
     @Test
     public void simpleQuery(){
 
         // Last Mensuration
-        String flux = "from(bucket: \"" + TestRunner.getTestConf().getOrg().getBucket() + "\")\n"
+        String flux = "from(bucket: \"" + SetupTestSuite.getTestConf().getOrg().getBucket() + "\")\n"
                 + "  |> range(start: 0)\n"
                 + "  |> filter(fn: (r) => r._measurement == \"weather_outdoor\")\n"
                 + "  |> filter(fn: (r) => r.home == \"100\")\n"
                 + "  |> filter(fn: (r) => r.sensor == \"120\")\n"
                 + "  |> last()";
 
-        List<FluxTable> tables = queryClient.query(flux, TestRunner.getInflux2conf().getOrgId());
+        List<FluxTable> tables = queryClient.query(flux, SetupTestSuite.getInflux2conf().getOrgId());
 
         printResult(flux, tables);
 

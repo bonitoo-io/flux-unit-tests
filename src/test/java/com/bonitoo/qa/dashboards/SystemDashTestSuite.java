@@ -1,14 +1,12 @@
 package com.bonitoo.qa.dashboards;
 
-import com.bonitoo.qa.CLIWrapper;
-import com.bonitoo.qa.TestRunner;
+import com.bonitoo.qa.SetupTestSuite;
 import org.influxdata.client.QueryApi;
 import org.influxdata.query.FluxTable;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -21,10 +19,10 @@ Current test is POC
 TODO - find way to keep these queries synched with dashboards to be released
  */
 
-public class SystemDashTest {
+public class SystemDashTestSuite {
 
-    private static final Logger LOG = LoggerFactory.getLogger(SystemDashTest.class);
-    private static QueryApi queryClient = TestRunner.getInfluxDBClient().getQueryApi();
+    private static final Logger LOG = LoggerFactory.getLogger(SystemDashTestSuite.class);
+    private static QueryApi queryClient = SetupTestSuite.getInfluxDBClient().getQueryApi();
 
     //Not in System-flux.json - however this is the standard minimum query
     @Test
@@ -35,11 +33,11 @@ public class SystemDashTest {
                 "  |> filter(fn: (r) => r._measurement == \"cpu\")\n" +
                 "  |> filter(fn: (r) => r._field == \"usage_idle\")\n" +
                 "  |> filter(fn: (r) => r.cpu == \"cpu-total\")",
-                TestRunner.getTestConf().getOrg().getBucket());
+                SetupTestSuite.getTestConf().getOrg().getBucket());
 
         //System.out.println("DEBUG query: " + query);
 
-        List<FluxTable> tables = queryClient.query(query, TestRunner.getInflux2conf().getOrgId());
+        List<FluxTable> tables = queryClient.query(query, SetupTestSuite.getInflux2conf().getOrgId());
 
         assertThat(tables.size()).isGreaterThan(0);
 
@@ -54,7 +52,7 @@ public class SystemDashTest {
         });
 
         //for fun and inspection
-        TestRunner.printTables(query, tables);
+        SetupTestSuite.printTables(query, tables);
     }
 
     @Test
@@ -66,14 +64,14 @@ public class SystemDashTest {
                 "from(bucket: \"%s\")\n" +
                 "  |> range(start: dashboardTime)\n" +
                 "  |> filter(fn: (r) => r._measurement == \"system\" and (r._field == \"n_cpus\"))",
-                TestRunner.getTestConf().getOrg().getBucket());
+                SetupTestSuite.getTestConf().getOrg().getBucket());
 
-        List<FluxTable> tables = queryClient.query(query, TestRunner.getInflux2conf().getOrgId());
+        List<FluxTable> tables = queryClient.query(query, SetupTestSuite.getInflux2conf().getOrgId());
 
         assertThat(tables.size()).isGreaterThan(0);
 
         //for fun and inspection
-        TestRunner.printTables(query, tables);
+        SetupTestSuite.printTables(query, tables);
 
         tables.forEach(table -> {
             assertThat(table.getRecords().size()).isGreaterThan(0);
@@ -99,15 +97,15 @@ public class SystemDashTest {
                 "  |> filter(fn: (r) => r._measurement == \"system\" and r.host == \"%s\" and (r._field == \"load1\" or r._field == \"load15\" or r._field == \"load5\"))\n" +
                 "  |> window(every: autoInterval)\n" +
                 "  |> group(columns: [\"_field\"], mode: \"by\")",
-                TestRunner.getTestConf().getOrg().getBucket(),
-                TestRunner.getTestConf().getHostname());
+                SetupTestSuite.getTestConf().getOrg().getBucket(),
+                SetupTestSuite.getTestConf().getHostname());
 
-        List<FluxTable> tables = queryClient.query(query, TestRunner.getInflux2conf().getOrgId());
+        List<FluxTable> tables = queryClient.query(query, SetupTestSuite.getInflux2conf().getOrgId());
 
         assertThat(tables.size()).isGreaterThan(0);
 
         //for fun and inspection
-        TestRunner.printTables(query, tables);
+        SetupTestSuite.printTables(query, tables);
 
         tables.forEach(table -> {
                     assertThat(table.getRecords().size()).isGreaterThan(0);
@@ -137,15 +135,15 @@ public class SystemDashTest {
                 "  |> window(every: autoInterval)\n" +
                 "  |> last()\n" +
                 "  |> group(columns: [\"_time\", \"_start\", \"_stop\", \"_value\"], mode: \"except\")",
-                TestRunner.getTestConf().getOrg().getBucket(),
-                TestRunner.getTestConf().getHostname());
+                SetupTestSuite.getTestConf().getOrg().getBucket(),
+                SetupTestSuite.getTestConf().getHostname());
 
-        List<FluxTable> tables = queryClient.query(query, TestRunner.getInflux2conf().getOrgId());
+        List<FluxTable> tables = queryClient.query(query, SetupTestSuite.getInflux2conf().getOrgId());
 
         assertThat(tables.size()).isGreaterThan(0);
 
         //for fun and inspection
-        TestRunner.printTables(query, tables);
+        SetupTestSuite.printTables(query, tables);
 
         tables.forEach(table -> {
             assertThat(table.getRecords().size()).isGreaterThan(0);
@@ -170,14 +168,14 @@ public class SystemDashTest {
                 "  |> filter(fn: (r) => r._measurement == \"net\" and r.host==\"%s\" and (r._field == \"bytes_sent\" or r._field == \"bytes_recv\"))\n" +
                 "  |> derivative(unit: 1s, nonNegative: true, columns: [\"_value\"])\n" +
                 "  |> group(columns: [\"_field\"], mode: \"by\" )",
-                TestRunner.getTestConf().getOrg().getBucket(),
-                TestRunner.getTestConf().getHostname());
+                SetupTestSuite.getTestConf().getOrg().getBucket(),
+                SetupTestSuite.getTestConf().getHostname());
 
-        List<FluxTable> tables = queryClient.query(query, TestRunner.getInflux2conf().getOrgId());
+        List<FluxTable> tables = queryClient.query(query, SetupTestSuite.getInflux2conf().getOrgId());
 
         assertThat(tables.size()).isGreaterThan(0);
 
-        TestRunner.printTables(query, tables);
+        SetupTestSuite.printTables(query, tables);
 
         tables.forEach(table -> {
             assertThat(table.getRecords().size()).isGreaterThan(0);
@@ -202,14 +200,14 @@ public class SystemDashTest {
                 "  |> filter(fn: (r) => r._measurement == \"diskio\" and r.host==\"%s\" and (r._field == \"read_bytes\" or r._field == \"write_bytes\"))\n" +
                 "  |> derivative(unit: 1s, nonNegative: true, columns: [\"_value\"])\n" +
                 "  |> group(columns: [\"_field\",\"name\"], mode: \"by\")",
-                TestRunner.getTestConf().getOrg().getBucket(),
-                TestRunner.getTestConf().getHostname());
+                SetupTestSuite.getTestConf().getOrg().getBucket(),
+                SetupTestSuite.getTestConf().getHostname());
 
-        List<FluxTable> tables = queryClient.query(query, TestRunner.getInflux2conf().getOrgId());
+        List<FluxTable> tables = queryClient.query(query, SetupTestSuite.getInflux2conf().getOrgId());
 
         assertThat(tables.size()).isGreaterThan(0);
 
-        TestRunner.printTables(query, tables);
+        SetupTestSuite.printTables(query, tables);
 
         tables.forEach(table -> {
             assertThat(table.getRecords().size()).isGreaterThan(0);
@@ -234,14 +232,14 @@ public class SystemDashTest {
                 "  |> filter(fn: (r) => r._measurement == \"processes\" and r.host == \"%s\" and r._field == \"total\")\n" +
                 "  |> window(every: autoInterval)\n" +
                 "  |> group(columns: [\"_field\"], mode: \"by\")",
-                TestRunner.getTestConf().getOrg().getBucket(),
-                TestRunner.getTestConf().getHostname());
+                SetupTestSuite.getTestConf().getOrg().getBucket(),
+                SetupTestSuite.getTestConf().getHostname());
 
-        List<FluxTable> tables = queryClient.query(query, TestRunner.getInflux2conf().getOrgId());
+        List<FluxTable> tables = queryClient.query(query, SetupTestSuite.getInflux2conf().getOrgId());
 
         assertThat(tables.size()).isGreaterThan(0);
 
-        TestRunner.printTables(query, tables);
+        SetupTestSuite.printTables(query, tables);
 
         tables.forEach(table -> {
             assertThat(table.getRecords().size()).isGreaterThan(0);
@@ -265,14 +263,14 @@ public class SystemDashTest {
                 "  |> filter(fn: (r) => r._measurement == \"swap\" and r.host == \"%s\" and (r._field == \"used\" or r._field == \"total\"))\n" +
                 "  |> window(every: autoInterval)\n" +
                 "  |> group(columns: [\"_field\"], mode: \"by\")",
-                TestRunner.getTestConf().getOrg().getBucket(),
-                TestRunner.getTestConf().getHostname());
+                SetupTestSuite.getTestConf().getOrg().getBucket(),
+                SetupTestSuite.getTestConf().getHostname());
 
-        List<FluxTable> tables = queryClient.query(query, TestRunner.getInflux2conf().getOrgId());
+        List<FluxTable> tables = queryClient.query(query, SetupTestSuite.getInflux2conf().getOrgId());
 
         assertThat(tables.size()).isGreaterThan(0);
 
-        TestRunner.printTables(query, tables);
+        SetupTestSuite.printTables(query, tables);
 
         tables.forEach(table -> {
             assertThat(table.getRecords().size()).isGreaterThan(0);
@@ -297,14 +295,14 @@ public class SystemDashTest {
                 "  |> filter(fn: (r) => r._measurement == \"mem\" and r.host == \"%s\" and (r._field == \"used_percent\"))\n" +
                 "  |> window(every: autoInterval)\n" +
                 "  |> group(columns: [\"_field\"], mode: \"by\")\n",
-                TestRunner.getTestConf().getOrg().getBucket(),
-                TestRunner.getTestConf().getHostname());
+                SetupTestSuite.getTestConf().getOrg().getBucket(),
+                SetupTestSuite.getTestConf().getHostname());
 
-        List<FluxTable> tables = queryClient.query(query, TestRunner.getInflux2conf().getOrgId());
+        List<FluxTable> tables = queryClient.query(query, SetupTestSuite.getInflux2conf().getOrgId());
 
         assertThat(tables.size()).isGreaterThan(0);
 
-        TestRunner.printTables(query, tables);
+        SetupTestSuite.printTables(query, tables);
 
         tables.forEach(table -> {
             assertThat(table.getRecords().size()).isGreaterThan(0);
@@ -329,16 +327,16 @@ public class SystemDashTest {
                 "  |> window(every: autoInterval)\n" +
                 "  |> mean()\n" +
                 "  |> group(columns: [\"_field\",\"path\"], mode: \"by\")",
-                TestRunner.getTestConf().getOrg().getBucket(),
-                TestRunner.getTestConf().getHostname());
+                SetupTestSuite.getTestConf().getOrg().getBucket(),
+                SetupTestSuite.getTestConf().getHostname());
 
         System.out.println("DEBUG query: " + query);
 
-        List<FluxTable> tables = queryClient.query(query, TestRunner.getInflux2conf().getOrgId());
+        List<FluxTable> tables = queryClient.query(query, SetupTestSuite.getInflux2conf().getOrgId());
 
         assertThat(tables.size()).isGreaterThan(0);
 
-        TestRunner.printTables(query, tables);
+        SetupTestSuite.printTables(query, tables);
 
         tables.forEach(table -> {
             assertThat(table.getRecords().size()).isGreaterThan(0);
@@ -359,13 +357,13 @@ public class SystemDashTest {
                 "from(bucket: \"%s\")\n" +
                 "  |> range(start: dashboardTime)\n" +
                 "  |> filter(fn: (r) => r._measurement == \"system\" and (r._field == \"load1\"))",
-                TestRunner.getTestConf().getOrg().getBucket());
+                SetupTestSuite.getTestConf().getOrg().getBucket());
 
-        List<FluxTable> tables = queryClient.query(query, TestRunner.getInflux2conf().getOrgId());
+        List<FluxTable> tables = queryClient.query(query, SetupTestSuite.getInflux2conf().getOrgId());
 
         assertThat(tables.size()).isGreaterThan(0);
 
-        TestRunner.printTables(query, tables);
+        SetupTestSuite.printTables(query, tables);
 
         tables.forEach(table -> {
             assertThat(table.getRecords().size()).isGreaterThan(0);
@@ -387,13 +385,13 @@ public class SystemDashTest {
                 "  |> range(start: dashboardTime)\n" +
                 "  |> filter(fn: (r) => r._measurement == \"mem\" and (r._field == \"total\"))\n" +
                 "  |> map(fn: (r) => r._value/1024/1024/1024)",
-                TestRunner.getTestConf().getOrg().getBucket());
+                SetupTestSuite.getTestConf().getOrg().getBucket());
 
-        List<FluxTable> tables = queryClient.query(query, TestRunner.getInflux2conf().getOrgId());
+        List<FluxTable> tables = queryClient.query(query, SetupTestSuite.getInflux2conf().getOrgId());
 
         assertThat(tables.size()).isGreaterThan(0);
 
-        TestRunner.printTables(query, tables);
+        SetupTestSuite.printTables(query, tables);
 
         tables.forEach(table -> {
             assertThat(table.getRecords().size()).isGreaterThan(0);
@@ -419,16 +417,16 @@ public class SystemDashTest {
                 "  and     r.cpu == \"cpu-total\" )\n" +
                 "  |> window(every: autoInterval)\n" +
                 "  |> group(columns: [\"_field\"], mode: \"by\")",
-                TestRunner.getTestConf().getOrg().getBucket(),
-                TestRunner.getTestConf().getHostname());
+                SetupTestSuite.getTestConf().getOrg().getBucket(),
+                SetupTestSuite.getTestConf().getHostname());
 
         System.out.println("DEBUG query: " + query);
 
-        List<FluxTable> tables = queryClient.query(query, TestRunner.getInflux2conf().getOrgId());
+        List<FluxTable> tables = queryClient.query(query, SetupTestSuite.getInflux2conf().getOrgId());
 
         assertThat(tables.size()).isGreaterThan(0);
 
-        TestRunner.printTables(query, tables);
+        SetupTestSuite.printTables(query, tables);
 
         tables.forEach(table -> {
             assertThat(table.getRecords().size()).isGreaterThan(0);

@@ -1,14 +1,11 @@
 package com.bonitoo.qa;
 
-import com.bonitoo.qa.flux.rest.artifacts.test.ArtifactsTest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.yaml.snakeyaml.reader.StreamReader;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.io.*;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.PosixFilePermission;

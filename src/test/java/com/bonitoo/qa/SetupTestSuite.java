@@ -32,7 +32,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.channels.Channels;
-import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -44,9 +43,9 @@ import java.util.Map;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-public class TestRunner {
+public class SetupTestSuite {
 
-    private static final Logger LOG = LoggerFactory.getLogger(TestRunner.class);
+    private static final Logger LOG = LoggerFactory.getLogger(SetupTestSuite.class);
 
 
     private static Configuration Influx2conf = new Configuration();
