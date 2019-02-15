@@ -31,6 +31,7 @@ public class FunctionsTestSuite {
     private static List<AirMonitorRecord> airRecords2;
     private static long recordInterval = 10 * 60000; // ms - 10 min
 
+    //todo - perhaps move this to SetupTestSuite - to be reused in other tests
     @BeforeClass
     public static void setup(){
 
@@ -102,6 +103,7 @@ public class FunctionsTestSuite {
                     .addField("temp", rec.getTemp())
                     .addField("humidity", rec.getHumidity())
                     .addField("pressure", rec.getAirpressure())
+                    .addField("battery-v", rec.getBatteryVoltage())
                     .time(time += recordInterval, ChronoUnit.MILLIS);
 
             writeClient.writePoint(SetupTestSuite.getInflux2conf().getBucketIds().get(0),
@@ -129,6 +131,7 @@ public class FunctionsTestSuite {
                         .addField("temp", rec.getTemp())
                         .addField("humidity", rec.getHumidity())
                         .addField("pressure", rec.getAirpressure())
+                        .addField("battery-v", rec.getBatteryVoltage())
                         .time(time += recordInterval, ChronoUnit.MILLIS);
 
             }else{
@@ -146,6 +149,7 @@ public class FunctionsTestSuite {
                         .addField("temp", rec.getTemp())
                         .addField("humidity", rec.getHumidity())
                         .addField("pressure", rec.getAirpressure())
+                        .addField("battery-v", rec.getBatteryVoltage())
                         .time(time += recordInterval, ChronoUnit.MILLIS);
             }
 
@@ -510,6 +514,157 @@ public class FunctionsTestSuite {
 
     }
 
+    @Test
+    public void sumTest(){
+
+        String query = String.format("from(bucket: \"%s\")\n" +
+                "  |> range(start: -4h)\n" +
+                "  |> filter(fn: (r) => r._measurement == \"air_quality\")\n" +
+                "  |> filter(fn: (r) => r._field == \"ppm10\")\n" +
+                "  |> sum(columns: [\"_value\"])",
+                SetupTestSuite.getTestConf().getOrg().getBucket());
+
+        List<FluxTable> tables = queryClient.query(query, SetupTestSuite.getInflux2conf().getOrgId());
+
+        //for fun and inspection
+        SetupTestSuite.printTables(query, tables);
+
+        assertThat(tables.size()).isEqualTo(2);
+
+        assertThat(tables.get(0).getRecords().get(0).getValue())
+                .isEqualTo(4026.0);
+        assertThat(tables.get(1).getRecords().get(0).getValue())
+                .isEqualTo(2412.0);
+    }
+
+    @Test
+    public void sumWindowTest(){
+
+        String query = String.format("from(bucket: \"%s\")\n" +
+                "  |> range(start: -4h)\n" +
+                "  |> filter(fn: (r) => r._measurement == \"air_quality\")\n" +
+                "  |> filter(fn: (r) => r.location == \"Smichov\")\n" +
+                "  |> filter(fn: (r) => r._field == \"ppm025\")\n" +
+                "  |> window(every: 30m, period: 30m, offset: -4h)\n" +
+                "  |> sum(columns: [\"_value\"])",
+                SetupTestSuite.getTestConf().getOrg().getBucket());
+
+        List<FluxTable> tables = queryClient.query(query, SetupTestSuite.getInflux2conf().getOrgId());
+
+        //for fun and inspection
+        SetupTestSuite.printTables(query, tables);
+
+        List<Double>ppm025s = new ArrayList<Double>();
+
+        for(AirMonitorRecord rec : airRecords2){
+            ppm025s.add(rec.getPm025());
+        }
+
+        Double maxPpm025 = Collections.max(ppm025s);
+        Double minPpm025 = Collections.min(ppm025s);
+
+        assertThat(tables.size()).isBetween(7,8); //depending on minute of hour
+
+        tables.forEach(table -> {
+           if(!(table.equals(tables.get(0)) || table.equals(tables.get(tables.size() - 1)))){
+               assertThat((Double)table.getRecords().get(0).getValue())
+                       .isBetween(minPpm025 * 3, maxPpm025 * 3); // each window except for first and last should have 3 data pts
+           }
+        });
+
+    }
+
+    //Selector functions
+
+    @Test
+    public void bottomTest(){
+
+        String query = String.format("from(bucket: \"%s\")\n" +
+                "  |> range(start: -4h)\n" +
+                "  |> filter(fn: (r) => r._measurement == \"air_quality\")\n" +
+                "  |> filter(fn: (r) => r._field == \"pressure\")\n" +
+                "  |> bottom(n:3)",
+                SetupTestSuite.getTestConf().getOrg().getBucket());
+
+        List<FluxTable> tables = queryClient.query(query, SetupTestSuite.getInflux2conf().getOrgId());
+
+        //for fun and inspection
+        SetupTestSuite.printTables(query, tables);
+
+        assertThat(tables.size()).isEqualTo(2);
+
+        tables.forEach(table ->{
+           table.getRecords().forEach(rec -> {
+              assertThat(rec.getValue()).isEqualTo(1019.0);
+           });
+        });
+
+    }
+
+    @Test
+    public void distinctTest(){
+
+        String query = String.format("from(bucket: \"%s\")\n" +
+                "  |> range(start: -4h)\n" +
+                "  |> filter(fn: (r) => r._measurement == \"air_quality\")\n" +
+                "  |> filter(fn: (r) => r._field == \"battery-v\")\n" +
+                "  |> distinct(column: \"location\")",
+                SetupTestSuite.getTestConf().getOrg().getBucket());
+
+        List<FluxTable> tables = queryClient.query(query, SetupTestSuite.getInflux2conf().getOrgId());
+
+        //for fun and inspection
+        SetupTestSuite.printTables(query, tables);
+
+        assertThat(tables.size()).isEqualTo(2);
+
+        assertThat((String)tables.get(0).getRecords().get(0).getValue()).isEqualTo("Smichov");
+        assertThat((String)tables.get(1).getRecords().get(0).getValue()).isEqualTo("Praha hlavni");
+
+    }
+
+    @Test
+    public void firstTest(){
+
+        String query = String.format("from(bucket: \"%s\")\n" +
+                "  |> range(start: -4h)\n" +
+                "  |> filter(fn: (r) => r._measurement == \"air_quality\")\n" +
+                "  |> filter(fn: (r) => r._field == \"battery-v\")\n" +
+                "  |> first()",
+                SetupTestSuite.getTestConf().getOrg().getBucket());
+
+        List<FluxTable> tables = queryClient.query(query, SetupTestSuite.getInflux2conf().getOrgId());
+
+        //for fun and inspection
+        SetupTestSuite.printTables(query, tables);
+
+        assertThat(tables.size()).isEqualTo(2);
+
+        assertThat((Double)tables.get(0).getRecords().get(0).getValue()).isEqualTo(2.1);
+        assertThat((Double)tables.get(1).getRecords().get(0).getValue()).isEqualTo(3.0);
+    }
+
+
+    @Test
+    public void lastTest(){
+
+        String query = String.format("from(bucket: \"%s\")\n" +
+                "  |> range(start: -4h)\n" +
+                "  |> filter(fn: (r) => r._measurement == \"air_quality\")\n" +
+                "  |> filter(fn: (r) => r._field == \"ppm025\")\n" +
+                "  |> last()",
+                SetupTestSuite.getTestConf().getOrg().getBucket());
+
+        List<FluxTable> tables = queryClient.query(query, SetupTestSuite.getInflux2conf().getOrgId());
+
+        //for fun and inspection
+        SetupTestSuite.printTables(query, tables);
+
+        assertThat(tables.size()).isEqualTo(2);
+
+        assertThat((Double)tables.get(0).getRecords().get(0).getValue()).isEqualTo(37);
+        assertThat((Double)tables.get(1).getRecords().get(0).getValue()).isEqualTo(57);
+    }
     //Transforms
 
     private static boolean columnsContains(List<FluxColumn> columns, String label){
