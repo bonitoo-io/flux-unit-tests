@@ -17,6 +17,7 @@ public class AirMonitorRecord {
     private String gpsLocation; //gps coord
     private String location;
     private String label;
+    private String city;
     private int unitId;
 
     public AirMonitorRecord(long o3,
@@ -34,6 +35,7 @@ public class AirMonitorRecord {
                             String gpsLocation,
                             String location,
                             String label,
+                            String city,
                             int unitId) {
         O3 = o3;
         this.pm025 = pm025;
@@ -50,6 +52,7 @@ public class AirMonitorRecord {
         this.gpsLocation = gpsLocation;
         this.location = location;
         this.label = label;
+        this.city = city;
         this.unitId = unitId;
     }
 
@@ -171,6 +174,14 @@ public class AirMonitorRecord {
 
     public void setLabel(String label) {
         this.label = label;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
     }
 
     public int getUnitId() {
