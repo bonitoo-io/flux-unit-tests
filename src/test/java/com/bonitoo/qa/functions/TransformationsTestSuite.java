@@ -10,6 +10,7 @@ package com.bonitoo.qa.functions;
  */
 
 import com.bonitoo.qa.SetupTestSuite;
+import org.assertj.core.util.VisibleForTesting;
 import org.influxdata.client.QueryApi;
 import org.influxdata.query.FluxRecord;
 import org.influxdata.query.FluxTable;
@@ -17,6 +18,9 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Instant;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -192,4 +196,384 @@ public class TransformationsTestSuite {
 
     }
 
+    @Test
+    public void keepTest(){
+
+        String query = String.format("from(bucket: \"%s\")\n" +
+                "  |> range(start: -4h)\n" +
+                "  |> filter(fn: (r) => r._measurement == \"air_quality\")\n" +
+                "  |> filter(fn: (r) => r._field == \"CO\")\n" +
+                "  |> filter(fn: (r) => r.city == \"Praha\")\n" +
+                "  |> keep(columns: [\"_time\", \"_value\", \"_field\", \"_measurement\", \"location\"])\n" +
+                "  |> columns(column: \"col_labels\")",
+                SetupTestSuite.getTestConf().getOrg().getBucket());
+
+        List<FluxTable> tables = queryClient.query(query, SetupTestSuite.getInflux2conf().getOrgId());
+
+        //for fun and inspection
+        SetupTestSuite.printTables(query, tables);
+
+        assertThat(tables.size()).isEqualTo(2); //one for each monitor tag set
+
+        String[] colLabels = {"_time", "_value", "_field", "_measurement", "location"};
+
+        tables.forEach(table -> {
+            int colLabelsCt = 0;
+            for(FluxRecord rec : table.getRecords()){
+                assertThat(rec.getValueByKey("col_labels")).isEqualTo(colLabels[colLabelsCt++]);
+            }
+        });
+
+    }
+
+    @Test
+    public void keysTest(){
+
+        String query = String.format("from(bucket: \"%s\")\n" +
+                "  |> range(start: -4h)\n" +
+                "  |> filter(fn: (r) => r._measurement == \"air_quality\")\n" +
+                "  |> filter(fn: (r) => r._field == \"SO2\")\n" +
+                "  |> filter(fn: (r) => r.city == \"Praha\")\n" +
+                "  |> keep(columns: [\"_value\", \"_time\", \"_field\", \"_measurement\", \"location\"])\n" +
+                "  |> keys(column: \"_value\")\n",
+                SetupTestSuite.getTestConf().getOrg().getBucket());
+
+        List<FluxTable> tables = queryClient.query(query, SetupTestSuite.getInflux2conf().getOrgId());
+
+        //for fun and inspection
+        SetupTestSuite.printTables(query, tables);
+
+        assertThat(tables.size()).isEqualTo(2); //one for each monitor tag set
+
+        String[] keyLabels = {"_field", "_measurement", "location"};
+
+        tables.forEach(table -> {
+            int keyLabelsCt = 0;
+            for(FluxRecord rec : table.getRecords()){
+                assertThat(rec.getValue()).isEqualTo(keyLabels[keyLabelsCt++]);
+            }
+        });
+
+    }
+
+    @Test
+    public void keyValsTest(){
+
+        String query = String.format("from(bucket: \"%s\")\n" +
+                        "  |> range(start: -4h)\n" +
+                        "  |> filter(fn: (r) => r._measurement == \"air_quality\")\n" +
+                        "  |> drop(columns: [\"_start\", \"_stop\"])\n" +
+                        "  |> keep(columns: [\"_time\", \"_value\", \"_field\", \"_measurement\"])\n" +
+                        "  |> keyValues(keyColumns: [\"_field\" )",
+                SetupTestSuite.getTestConf().getOrg().getBucket());
+
+        List<FluxTable> tables = queryClient.query(query, SetupTestSuite.getInflux2conf().getOrgId());
+
+        //for fun and inspection
+        SetupTestSuite.printTables(query, tables);
+
+        assertThat(tables.size()).isEqualTo(10); //one for each monitor tag set
+
+        String[] keyVals = {"CO", "NO2", "O3", "SO2", "battery-v", "humidity", "ppm025", "ppm10", "pressure", "temp"};
+
+        int keyValsCt = 0;
+
+        for(FluxTable table : tables){
+
+            assertThat(table.getRecords().get(0).getValue()).isEqualTo(keyVals[keyValsCt++]);
+
+        }
+
+    }
+
+    @Test
+    public void limitTest(){
+
+        String query = String.format("from(bucket: \"%s\")\n" +
+                "  |> range(start: -4h)\n" +
+                "  |> filter(fn: (r) => r._measurement == \"air_quality\")\n" +
+                "  |> filter(fn: (r) => r._field == \"humidity\")\n" +
+                "  |> limit(n:5, offset: 2)",
+                SetupTestSuite.getTestConf().getOrg().getBucket());
+
+        List<FluxTable> tables = queryClient.query(query, SetupTestSuite.getInflux2conf().getOrgId());
+
+        //for fun and inspection
+        SetupTestSuite.printTables(query, tables);
+
+        assertThat(tables.size()).isEqualTo(2); //one for each monitor tag set
+
+        Double[] vals = {73.5, 73.0, 72.8, 72.6, 72.8, 68.0, 67.5, 67.5, 67.0, 66.5};
+
+        int valsCt = 0;
+
+        for(FluxTable table : tables){
+            assertThat(table.getRecords().size()).isEqualTo(5);
+            for(FluxRecord rec : table.getRecords()){
+                assertThat(rec.getValue()).isEqualTo(vals[valsCt++]);
+            }
+        }
+
+
+    }
+
+
+    @Test
+    public void mapTest(){
+
+        String query = String.format("lowest = 100.0\n" +
+                        "\n" +
+                        "from(bucket: \"%s\")\n" +
+                        "  |> range(start: -4h)\n" +
+                        "  |> filter(fn: (r) => r._measurement == \"air_quality\")\n" +
+                        "  |> filter(fn: (r) => r._field == \"ppm10\")\n" +
+                        "  |> filter(fn: (r) => r.location == \"Praha hlavni\")\n" +
+                        "  |> map(fn: (r) => r._value - lowest, mergeKey: true)",
+                SetupTestSuite.getTestConf().getOrg().getBucket());
+
+        List<FluxTable> tables = queryClient.query(query, SetupTestSuite.getInflux2conf().getOrgId());
+
+        //for fun and inspection
+        SetupTestSuite.printTables(query, tables);
+
+        assertThat(tables.size()).isEqualTo(1); //one for each monitor tag set
+
+        Double[] vals = {10.0, 7.0, 6.0, 5.0, 3.0, 1.0, -1.0, 3.0, 8.0, 14.0,
+                         18.0, 24.0, 29.0, 34.0, 38.0, 42.0, 44.0, 45.0, 43.0, 39.0 };
+
+        int valsCt = 0;
+
+        for(FluxTable table : tables){
+            for(FluxRecord rec : table.getRecords()){
+                assertThat(rec.getValue()).isEqualTo(vals[valsCt++]);
+            }
+        }
+
+
+    }
+
+    @Test
+    public void pivotTest(){
+
+        String query = String.format("from(bucket: \"%s\")\n" +
+                "  |> range(start: -4h)\n" +
+                "  |> filter(fn: (r) => r._measurement == \"air_quality\")\n" +
+                "  |> filter(fn: (r) => r._field == \"O3\")\n" +
+                "  |> filter(fn: (r) => r.location == \"Smichov\")\n" +
+                "  |> keep(columns: [\"_time\", \"_measurement\", \"_field\", \"_value\"])\n" +
+                "  |> pivot(rowKey:[\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n",
+                SetupTestSuite.getTestConf().getOrg().getBucket());
+
+        List<FluxTable> tables = queryClient.query(query, SetupTestSuite.getInflux2conf().getOrgId());
+
+        //for fun and inspection
+        SetupTestSuite.printTables(query, tables);
+
+        assertThat(tables.size()).isEqualTo(1); //one for each monitor tag set
+
+        Integer[] vals = {157, 167, 172, 175, 176, 174, 172, 171, 169, 170};
+
+        int valsCt = 0;
+
+        for(FluxTable table : tables){
+
+            assertThat(SetupTestSuite.columnsContains(table.getColumns(), "O3")).isTrue();
+            for(FluxRecord rec : table.getRecords()){
+                assertThat(rec.getValueByKey("O3")).isEqualTo(Long.valueOf(vals[valsCt++]));
+            }
+        }
+
+    }
+
+    @Test
+    public void renameTest(){
+
+        String query = String.format("from(bucket: \"%s\")\n" +
+                "  |> range(start: -4h)\n" +
+                "  |> filter(fn: (r) => r._measurement == \"air_quality\")\n" +
+                "  |> filter(fn: (r) => r._field == \"ppm10\")\n" +
+                "  |> rename(columns: {label: \"name\", gps: \"coords\", location: \"station\"})",
+                SetupTestSuite.getTestConf().getOrg().getBucket());
+
+        List<FluxTable> tables = queryClient.query(query, SetupTestSuite.getInflux2conf().getOrgId());
+
+        //for fun and inspection
+        SetupTestSuite.printTables(query, tables);
+
+        assertThat(tables.size()).isEqualTo(2); //one for each monitor tag set
+
+        tables.forEach(table -> {
+
+            assertThat(SetupTestSuite.columnsContains(table.getColumns(), "name")).isTrue();
+            assertThat(SetupTestSuite.columnsContains(table.getColumns(), "label")).isFalse();
+            assertThat(SetupTestSuite.columnsContains(table.getColumns(), "coords")).isTrue();
+            assertThat(SetupTestSuite.columnsContains(table.getColumns(), "gps")).isFalse();
+            assertThat(SetupTestSuite.columnsContains(table.getColumns(), "station")).isTrue();
+            assertThat(SetupTestSuite.columnsContains(table.getColumns(), "location")).isFalse();
+            assertThat(SetupTestSuite.columnsContains(table.getColumns(), "city")).isTrue(); //should be unchanged
+            assertThat(SetupTestSuite.columnsContains(table.getColumns(), "unitId")).isTrue(); //should be unchanged
+
+        });
+
+    }
+
+    @Test
+    public void setTest(){
+
+        String query = String.format("from(bucket: \"%s\")\n" +
+                "  |> range(start: -4h)\n" +
+                "  |> filter(fn: (r) => r._measurement == \"air_quality\")\n" +
+                "  |> filter(fn: (r) => r._field == \"ppm025\")\n" +
+                "  |> set(key: \"city\", value: \"Prague\")\n" +
+                "  |> set(key: \"test\", value: \"pokus\")\n",
+                SetupTestSuite.getTestConf().getOrg().getBucket());
+
+        List<FluxTable> tables = queryClient.query(query, SetupTestSuite.getInflux2conf().getOrgId());
+
+        //for fun and inspection
+        SetupTestSuite.printTables(query, tables);
+
+        assertThat(tables.size()).isEqualTo(2); //one for each monitor tag set
+
+        tables.forEach(table -> {
+
+            table.getRecords().forEach(rec -> {
+                assertThat(rec.getValueByKey("city")).isEqualTo("Prague");
+                assertThat(rec.getValueByKey("test")).isEqualTo("pokus");
+            });
+
+        });
+    }
+
+    @Test
+    public void shiftTest(){
+        String query1 = String.format("from(bucket: \"%s\")\n" +
+                "  |> range(start: -4h)\n" +
+                "  |> filter(fn: (r) => r._measurement == \"air_quality\")\n" +
+                "  |> filter(fn: (r) => r._field == \"battery-v\")",
+                SetupTestSuite.getTestConf().getOrg().getBucket());
+
+        List<FluxTable> tables1 = queryClient.query(query1, SetupTestSuite.getInflux2conf().getOrgId());
+
+        String query2 = String.format("from(bucket: \"%s\")\n" +
+                "  |> range(start: -4h)\n" +
+                "  |> filter(fn: (r) => r._measurement == \"air_quality\")\n" +
+                "  |> filter(fn: (r) => r._field == \"battery-v\")\n" +
+                "  |> shift(shift: -1h, columns: [\"_start\", \"_stop\", \"_time\"])",
+                SetupTestSuite.getTestConf().getOrg().getBucket());
+
+        List<FluxTable> tables2 = queryClient.query(query2, SetupTestSuite.getInflux2conf().getOrgId());
+
+        assertThat(tables1.size()).isEqualTo(2);
+        assertThat(tables2.size()).isEqualTo(2);
+
+
+        for(int i = 0; i < tables1.size(); i++){
+
+            for(int j = 0; j < tables1.get(i).getRecords().size(); j++){
+
+                Instant d1 = (Instant)tables1.get(i).getRecords().get(j).getValueByKey("_time");
+                Instant d2 = (Instant)tables2.get(i).getRecords().get(j).getValueByKey("_time");
+
+                assertThat(d1.minusSeconds(3600)).isBetween(d2.minusMillis(100), d2.plusMillis(100));
+
+                d1 = (Instant)tables1.get(i).getRecords().get(j).getValueByKey("_start");
+                d2 = (Instant)tables2.get(i).getRecords().get(j).getValueByKey("_start");
+
+                assertThat(d1.minusSeconds(3600)).isBetween(d2.minusMillis(100), d2.plusMillis(100));
+
+                d1 = (Instant)tables1.get(i).getRecords().get(j).getValueByKey("_stop");
+                d2 = (Instant)tables2.get(i).getRecords().get(j).getValueByKey("_stop");
+
+                assertThat(d1.minusSeconds(3600)).isBetween(d2.minusMillis(100), d2.plusMillis(100));
+
+            }
+
+        }
+
+    }
+
+    @Test
+    public void sortTest(){
+
+        //Asc
+        String query1 = String.format("from(bucket: \"%s\")\n" +
+                "  |> range(start: -4h)\n" +
+                "  |> filter(fn: (r) => r._measurement == \"air_quality\")\n" +
+                "  |> filter(fn: (r) => r._field == \"CO\")\n" +
+                "  |> filter(fn: (r) => r.location == \"Smichov\")\n" +
+                "  |> sort(columns: [\"_value\"], desc: false)",
+                SetupTestSuite.getTestConf().getOrg().getBucket());
+
+        //Desc
+        String query2 = String.format("from(bucket: \"%s\")\n" +
+                        "  |> range(start: -4h)\n" +
+                        "  |> filter(fn: (r) => r._measurement == \"air_quality\")\n" +
+                        "  |> filter(fn: (r) => r._field == \"CO\")\n" +
+                        "  |> filter(fn: (r) => r.location == \"Smichov\")\n" +
+                        "  |> sort(columns: [\"_value\"], desc: true)",
+                SetupTestSuite.getTestConf().getOrg().getBucket());
+
+        List<FluxTable> tables1 = queryClient.query(query1, SetupTestSuite.getInflux2conf().getOrgId());
+        List<FluxTable> tables2 = queryClient.query(query2, SetupTestSuite.getInflux2conf().getOrgId());
+
+        double currVal = Integer.MIN_VALUE;
+
+        for(FluxRecord rec : tables1.get(0).getRecords()){
+            assertThat((Double)rec.getValue()).isGreaterThanOrEqualTo(currVal);
+            currVal = (Double)rec.getValue();
+        }
+
+        currVal = Integer.MAX_VALUE;
+
+        for(FluxRecord rec : tables2.get(0).getRecords()){
+            assertThat((Double)rec.getValue()).isLessThanOrEqualTo(currVal);
+            currVal = (Double)rec.getValue();
+        }
+
+    }
+
+    @Test
+    public void unionTest(){
+
+        String query = String.format("hlavni = from(bucket: \"%s\")\n" +
+                "  |> range(start: -4h)\n" +
+                "  |> filter(fn: (r) => r._measurement == \"air_quality\")\n" +
+                "  |> filter(fn: (r) => r.location == \"Praha hlavni\")\n" +
+                "  |> filter(fn: (r) => r._field == \"battery-v\")\n" +
+                "  |> drop(columns: [\"_start\", \"_stop\", \"unitId\", \"label\", \"gps\", \"location\"])\n" +
+                "\n" +
+                "Smichov = from(bucket: \"%s\")\n" +
+                "  |> range(start: -4h)\n" +
+                "  |> filter(fn: (r) => r._measurement == \"air_quality\")\n" +
+                "  |> filter(fn: (r) => r.location == \"Smichov\")\n" +
+                "  |> filter(fn: (r) => r._field == \"battery-v\")\n" +
+                "  |> drop(columns: [\"_start\", \"_stop\", \"unitId\", \"label\", \"gps\", \"location\"])\n" +
+                "\n" +
+                "union(tables: [hlavni, Smichov])",
+                SetupTestSuite.getTestConf().getOrg().getBucket(),
+                SetupTestSuite.getTestConf().getOrg().getBucket());
+
+        List<FluxTable> tables = queryClient.query(query, SetupTestSuite.getInflux2conf().getOrgId());
+
+        //for fun and inspection
+        SetupTestSuite.printTables(query, tables);
+
+        assertThat(tables.size()).isEqualTo(1);
+
+        Double[] vals = {3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 2.9, 2.9, 2.9, 2.9,
+                         2.9, 2.9, 2.9, 2.9, 2.9, 2.9, 2.9, 2.9, 2.9, 2.9,
+                         2.1, 2.1, 2.1, 2.1, 2.1, 2.1, 2.1, 2.1, 2.1, 2.0,
+                         2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0};
+
+        int valsCt = 0;
+
+        for(FluxRecord rec : tables.get(0).getRecords()){
+
+            assertThat((Double)rec.getValue()).isEqualTo(vals[valsCt++]);
+
+        }
+
+
+    }
 }
