@@ -3,9 +3,6 @@ package com.bonitoo.qa.functions;
 import com.bonitoo.qa.SetupTestSuite;
 import com.bonitoo.qa.data.AirMonitorRecord;
 import org.influxdata.client.QueryApi;
-import org.influxdata.client.WriteApi;
-import org.influxdata.client.write.Point;
-import org.influxdata.query.FluxColumn;
 import org.influxdata.query.FluxRecord;
 import org.influxdata.query.FluxTable;
 import org.junit.BeforeClass;
@@ -15,16 +12,15 @@ import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class FunctionsTestSuite {
+public class AggregatorsTestSuite {
 
-    private static final Logger LOG = LoggerFactory.getLogger(FunctionsTestSuite.class);
+    private static final Logger LOG = LoggerFactory.getLogger(AggregatorsTestSuite.class);
     private static QueryApi queryClient = SetupTestSuite.getInfluxDBClient().getQueryApi();
 
     @BeforeClass
