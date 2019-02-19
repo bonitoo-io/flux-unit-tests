@@ -14,6 +14,7 @@ import org.assertj.core.util.VisibleForTesting;
 import org.influxdata.client.QueryApi;
 import org.influxdata.query.FluxRecord;
 import org.influxdata.query.FluxTable;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +30,14 @@ public class TransformationsTestSuite {
 
     private static final Logger LOG = LoggerFactory.getLogger(TransformationsTestSuite.class);
     private static QueryApi queryClient = SetupTestSuite.getInfluxDBClient().getQueryApi();
+
+
+    @BeforeClass
+    public static void setup(){
+
+        SetupTestSuite.setupAirRecords();
+
+    }
 
 
     //Cumulative Sum
