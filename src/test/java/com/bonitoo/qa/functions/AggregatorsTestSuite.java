@@ -439,6 +439,144 @@ public class AggregatorsTestSuite {
 
     }
 
+    @Test
+    public void percentileTest(){
+
+        String query = String.format("from(bucket: \"%s\")\n" +
+                "  |> range(start: -4h)\n" +
+                "  |> filter(fn: (r) => r._measurement == \"air_quality\")\n" +
+                "  |> filter(fn: (r) => r._field == \"ppm025\")\n" +
+                "  |> percentile(percentile: 0.9)\n",
+                SetupTestSuite.getTestConf().getOrg().getBucket());
+
+        List<FluxTable> tables = queryClient.query(query, SetupTestSuite.getInflux2conf().getOrgId());
+
+        //for fun and inspection
+        SetupTestSuite.printTables(query, tables);
+
+        assertThat(tables.size()).isEqualTo(2);
+
+        assertThat((Double)tables.get(0).getRecords().get(0).getValue()).isEqualTo(46.5);
+        assertThat((Double)tables.get(1).getRecords().get(0).getValue()).isEqualTo(59.5);
+    }
+
+    @Test
+    public void skewTest(){
+
+        String query = String.format("from(bucket: \"%s\")\n" +
+                        "  |> range(start: -4h)\n" +
+                        "  |> filter(fn: (r) => r._measurement == \"air_quality\")\n" +
+                        "  |> filter(fn: (r) => r._field == \"ppm025\")\n" +
+                        "  |> skew()\n",
+                SetupTestSuite.getTestConf().getOrg().getBucket());
+
+        List<FluxTable> tables = queryClient.query(query, SetupTestSuite.getInflux2conf().getOrgId());
+
+        //for fun and inspection
+        SetupTestSuite.printTables(query, tables);
+
+        assertThat(tables.size()).isEqualTo(2);
+
+        assertThat((Double)tables.get(0).getRecords().get(0).getValue()).isEqualTo(0.7795347338130559);
+        assertThat((Double)tables.get(1).getRecords().get(0).getValue()).isEqualTo(0.44497585268630263);
+
+    }
+
+    @Test
+    public void pearsonrTest(){
+
+        String query = String.format("smichov = from(bucket: \"%s\")\n" +
+                "  |> range(start: -4h)\n" +
+                "  |> filter(fn: (r) => r._measurement == \"air_quality\")\n" +
+                "  |> filter(fn: (r) => r._field == \"ppm025\")\n" +
+                "  |> filter(fn: (r) => r.location == \"Smichov\")\n" +
+                "\n" +
+                "hlavni = from(bucket: \"%s\")\n" +
+                "    |> range(start: -4h)\n" +
+                "    |> filter(fn: (r) => r._measurement == \"air_quality\")\n" +
+                "    |> filter(fn: (r) => r._field == \"ppm025\")\n" +
+                "    |> filter(fn: (r) => r.location == \"Praha hlavni\")\n" +
+                "\n" +
+                "pearsonr(x: smichov, y: hlavni, on: [\"_time\", \"_field\"])\n",
+                SetupTestSuite.getTestConf().getOrg().getBucket(),
+                SetupTestSuite.getTestConf().getOrg().getBucket());
+
+
+        List<FluxTable> tables = queryClient.query(query, SetupTestSuite.getInflux2conf().getOrgId());
+
+        //for fun and inspection
+        SetupTestSuite.printTables(query, tables);
+
+        assertThat(tables.size()).isEqualTo(1);
+
+        assertThat((Double)tables.get(0).getRecords().get(0).getValue()).isEqualTo(-0.6881492738206025);
+
+
+    }
+
+    @Test
+    public void covTest(){
+
+        String query = String.format("smichov = from(bucket: \"%s\")\n" +
+                        "  |> range(start: -4h)\n" +
+                        "  |> filter(fn: (r) => r._measurement == \"air_quality\")\n" +
+                        "  |> filter(fn: (r) => r._field == \"ppm025\")\n" +
+                        "  |> filter(fn: (r) => r.location == \"Smichov\")\n" +
+                        "\n" +
+                        "hlavni = from(bucket: \"%s\")\n" +
+                        "    |> range(start: -4h)\n" +
+                        "    |> filter(fn: (r) => r._measurement == \"air_quality\")\n" +
+                        "    |> filter(fn: (r) => r._field == \"ppm025\")\n" +
+                        "    |> filter(fn: (r) => r.location == \"Praha hlavni\")\n" +
+                        "\n" +
+                        "cov(x: smichov, y: hlavni, on: [\"_time\", \"_field\"])\n",
+                SetupTestSuite.getTestConf().getOrg().getBucket(),
+                SetupTestSuite.getTestConf().getOrg().getBucket());
+
+
+        List<FluxTable> tables = queryClient.query(query, SetupTestSuite.getInflux2conf().getOrgId());
+
+        //for fun and inspection
+        SetupTestSuite.printTables(query, tables);
+
+        assertThat(tables.size()).isEqualTo(1);
+
+        assertThat((Double)tables.get(0).getRecords().get(0).getValue()).isEqualTo(-33.39999999999998);
+
+    }
+
+    @Test
+    public void covarianceTest(){
+
+        String query = String.format("smichov = from(bucket: \"%s\")\n" +
+                "  |> range(start: -4h)\n" +
+                "  |> filter(fn: (r) => r._measurement == \"air_quality\")\n" +
+                "  |> filter(fn: (r) => r._field == \"ppm025\")\n" +
+                "  |> filter(fn: (r) => r.location == \"Smichov\")\n" +
+                "\n" +
+                "hlavni = from(bucket: \"%s\")\n" +
+                "    |> range(start: -4h)\n" +
+                "    |> filter(fn: (r) => r._measurement == \"air_quality\")\n" +
+                "    |> filter(fn: (r) => r._field == \"ppm025\")\n" +
+                "    |> filter(fn: (r) => r.location == \"Praha hlavni\")\n" +
+                "\n" +
+                "join(tables: {key1: smichov, key2: hlavni}, on: [\"city\", \"_field\", \"_measurement\", \"_start\", \"_stop\", \"_time\"], method: \"inner\")\n" +
+                "   |> covariance(columns: [\"_value_key1\",\"_value_key2\"], pearsonr: false, valueDst: \"_value\")\n",
+                SetupTestSuite.getTestConf().getOrg().getBucket(),
+                SetupTestSuite.getTestConf().getOrg().getBucket());
+
+        List<FluxTable> tables = queryClient.query(query, SetupTestSuite.getInflux2conf().getOrgId());
+
+        //for fun and inspection
+        SetupTestSuite.printTables(query, tables);
+
+        assertThat(tables.size()).isEqualTo(1);
+
+        assertThat((Double)tables.get(0).getRecords().get(0).getValue()).isEqualTo(-33.39999999999998);
+
+    }
+
+
     //Transforms
 
 
