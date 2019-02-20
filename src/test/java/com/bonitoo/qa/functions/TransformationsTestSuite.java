@@ -20,9 +20,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -570,14 +572,29 @@ public class TransformationsTestSuite {
 
         assertThat(tables.size()).isEqualTo(1);
 
-        Double[] vals = {
+        Double[] valsHlavni = {
                          2.1, 2.1, 2.1, 2.1, 2.1, 2.1, 2.1, 2.1, 2.1, 2.0,
-                         2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0,
+                         2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0 };
+        Double[] valsSmichov = {
                          3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 2.9, 2.9, 2.9, 2.9,
                          2.9, 2.9, 2.9, 2.9, 2.9, 2.9, 2.9, 2.9, 2.9, 2.9
                          };
 
+        Double[] vals;
+
         int valsCt = 0;
+
+
+        //union order seems unpredicatble
+        if((Double)tables.get(0).getRecords().get(0).getValue() == 2.1){ // Hlavni is first
+
+            vals = Stream.concat(Arrays.stream(valsHlavni), Arrays.stream(valsSmichov)).toArray(Double[]::new);
+
+        }else{ //Hlavni is second
+
+            vals = Stream.concat(Arrays.stream(valsSmichov), Arrays.stream(valsHlavni)).toArray(Double[]::new);
+
+        }
 
         for(FluxRecord rec : tables.get(0).getRecords()){
 
