@@ -12,6 +12,8 @@ package com.bonitoo.qa.functions;
 import com.bonitoo.qa.SetupTestSuite;
 import org.assertj.core.util.VisibleForTesting;
 import org.influxdata.client.QueryApi;
+import org.influxdata.client.WriteApi;
+import org.influxdata.client.write.Point;
 import org.influxdata.query.FluxRecord;
 import org.influxdata.query.FluxTable;
 import org.junit.BeforeClass;
@@ -20,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
@@ -39,6 +42,35 @@ public class TransformationsTestSuite {
 
         SetupTestSuite.setupAirRecords();
 
+        //try and setup additional data set for fill
+
+        /*
+        long recordInterval = 2 * 60000;
+        long time = System.currentTimeMillis() - ((101) * recordInterval);
+
+        WriteApi writeClient = SetupTestSuite.getInfluxDBClient().getWriteApi();
+
+
+        for(int i = 100; i >= 0; i--){
+            Point p = Point.measurement("foo")
+            .addTag("rabbit", "peter");
+
+            if(i % 5 == 0){
+                p.addField("x", Long.valueOf(i));
+            }else{
+                p.addField("x",  Long.valueOf(-1));
+            }
+
+            p.time(time += recordInterval, ChronoUnit.MILLIS);
+
+            writeClient.writePoint(SetupTestSuite.getInflux2conf().getBucketIds().get(0),
+                    SetupTestSuite.getInflux2conf().getOrgId(),
+                    p);
+
+        }
+
+        writeClient.close();
+*/
     }
 
 

@@ -576,6 +576,30 @@ public class AggregatorsTestSuite {
 
     }
 
+    @Test
+    public void histogramQuantileTest(){
+
+        String query = String.format("from(bucket: \"%s\")\n" +
+                "  |> range(start: -4h, stop: now())\n" +
+                "  |> filter(fn: (r) => r._measurement == \"air_quality\")\n" +
+                "  |> filter(fn: (r) => r._field == \"CO\")\n" +
+                "  |> histogram(column: \"_value\", upperBoundColumn: \"le\", countColumn: \"_value\", bins: [5.0, 10.0, 15.0, 20.0, 25.0 ], normalize: false)\n" +
+                "  |> histogramQuantile(quantile: 0.9, countColumn: \"_value\", upperBoundColumn: \"le\", valueColumn: \"_value\", minValue: 0.0)",
+                SetupTestSuite.getTestConf().getOrg().getBucket());
+
+        List<FluxTable> tables = queryClient.query(query, SetupTestSuite.getInflux2conf().getOrgId());
+
+        //for fun and inspection
+        SetupTestSuite.printTables(query, tables);
+
+        assertThat(tables.size()).isEqualTo(2);
+
+        assertThat((Double)tables.get(0).getRecords().get(0).getValue()).isEqualTo(23.333333333333332);
+        assertThat((Double)tables.get(1).getRecords().get(0).getValue()).isEqualTo(9.0);
+
+
+    }
+
 
     //Transforms
 
