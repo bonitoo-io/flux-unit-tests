@@ -389,6 +389,8 @@ public class SetupTestSuite {
 
         Response r2 = builder.post(Entity.entity(telegrafReq, MediaType.APPLICATION_JSON));
 
+//        System.out.println("DEBUG telegraf response: " + r2.readEntity(String.class));
+
         Telegraf telegraf = r2.readEntity(Telegraf.class);
 
         //Download config
