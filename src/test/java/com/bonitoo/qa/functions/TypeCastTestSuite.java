@@ -23,29 +23,44 @@ public class TypeCastTestSuite {
     private static final Logger LOG = LoggerFactory.getLogger(TypeCastTestSuite.class);
     private static QueryApi queryClient = SetupTestSuite.getInfluxDBClient().getQueryApi();
 
+    private static List<Instant> moments = new ArrayList<Instant>(); //for str-date tests
+    private static long DummyRecCount = 100;
+    private static long LongInterval = (Long.MAX_VALUE)/(DummyRecCount/2L);
+  //  private static double DoubleInterval = (Double.MAX_VALUE)/(DummyRecCount/2.0);
+
     @BeforeClass
     public static void setup() {
 
         SetupTestSuite.setupAirRecords();
 
         long recordInterval = 2 * 60000;
-        long time = System.currentTimeMillis() - ((101) * recordInterval);
+        long time = System.currentTimeMillis() - ((DummyRecCount + 1L) * recordInterval);
 
-        WriteApi writeClient = SetupTestSuite.getInfluxDBClient().getWriteApi();
+        WriteApi writeClientBool = SetupTestSuite.getInfluxDBClient().getWriteApi();
+        WriteApi writeClientString = SetupTestSuite.getInfluxDBClient().getWriteApi();
 
         boolean t = true;
         boolean f = false;
+        Double D = Double.MAX_VALUE;
 
         // TRUE, true, True, t, FALSE, false, False, f
 
-        for(int i = 100; i >= 0; i--){
-            Point p = Point.measurement("bools")
+     //   System.out.println("DEBUG Double: " + DoubleInterval + " Dbl.MAX: " + Double.MAX_VALUE + " Dbl.MIN: " + Double.MIN_VALUE );
+
+
+
+        for(long i = DummyRecCount; i >= 0; i--){
+
+            Point pBool = Point.measurement("bools")
                     .addTag("boole", "george");
 
+            Point pString = Point.measurement("strings")
+                    .addTag("string", "cello");
+
             if(i % 5 == 0){
-                p.addField("b", f);
+                pBool.addField("b", f);
             }else{
-                p.addField("b",  t);
+                pBool.addField("b",  t);
             }
 
             String b_lit = "true";
@@ -88,19 +103,40 @@ public class TypeCastTestSuite {
             }
 
 
-            p.addField("b_lit", b_lit);
+            pBool.addField("b_lit", b_lit);
 
-            p.addField("b_int", (i % 2));
+            pBool.addField("b_int", (i % 2));
 
-            p.time(time += recordInterval, ChronoUnit.MILLIS);
+            pString.addField("float_str",  Double.toString(D));
 
-            writeClient.writePoint(SetupTestSuite.getInflux2conf().getBucketIds().get(0),
+            //manipulate the double bits to get a new value next iter
+            //Long L = D.doubleToLongBits(D);
+            //long l = L.longValue();
+            D = (i < DummyRecCount/2.0)  ? Math.pow((Math.sqrt(i) + 1), i) : 1.0/(Math.pow(DummyRecCount - i,  DummyRecCount - i));
+           // D = D.longBitsToDouble(l);
+
+            pString.addField("long_str", Long.toString(Long.MAX_VALUE - (LongInterval * Long.valueOf(i))));
+
+            moments.add(Instant.now());
+
+            pString.addField("date_str", moments.get(moments.size() - 1).toString());
+
+            pBool.time(time, ChronoUnit.MILLIS);
+
+            pString.time(time += recordInterval, ChronoUnit.MILLIS);
+
+            writeClientBool.writePoint(SetupTestSuite.getInflux2conf().getBucketIds().get(0),
                     SetupTestSuite.getInflux2conf().getOrgId(),
-                    p);
+                    pBool);
+
+            writeClientString.writePoint(SetupTestSuite.getInflux2conf().getBucketIds().get(0),
+                    SetupTestSuite.getInflux2conf().getOrgId(),
+                    pString);
 
         }
 
-        writeClient.close();
+        writeClientBool.close();
+        writeClientString.close();
 
     }
 
@@ -461,6 +497,64 @@ public class TypeCastTestSuite {
             // TODO assert values are in range when converted back to time
 //            Instant in = Instant.ofEpochMilli((Long)rec.getValue());
         });
+
+    }
+
+    @Test
+    public void StringToLongTest(){
+
+        String query = String.format("from(bucket: \"%s\")\n" +
+                "  |> range(start: -6h, stop: now())\n" +
+                "  |> filter(fn: (r) => r._measurement == \"strings\")\n" +
+                "  |> filter(fn: (r) => r._field == \"long_str\")\n" +
+                "  |> toInt()",
+                SetupTestSuite.getTestConf().getOrg().getBucket());
+
+        List<FluxTable> tables = queryClient.query(query, SetupTestSuite.getInflux2conf().getOrgId());
+
+        //for fun and inspection
+        SetupTestSuite.printTables(query, tables);
+
+        assertThat(tables.size()).isEqualTo(1); //one for each monitor tag set
+
+        long recCt = 0L;
+
+        for(FluxRecord rec : tables.get(0).getRecords()){
+            assertThat(rec.getValue() instanceof Long);
+            assertThat(rec.getValue()).isEqualTo(Long.MAX_VALUE - (LongInterval * (DummyRecCount - recCt++)));
+        }
+
+    }
+
+    @Test
+    public void StringToDoubleTest(){
+
+        String query = String.format("from(bucket: \"%s\")\n" +
+                "  |> range(start: -6h, stop: now())\n" +
+                "  |> filter(fn: (r) => r._measurement == \"strings\")\n" +
+                "  |> filter(fn: (r) => r._field == \"float_str\")\n" +
+                "  |> toFloat()",
+                SetupTestSuite.getTestConf().getOrg().getBucket());
+
+        List<FluxTable> tables = queryClient.query(query, SetupTestSuite.getInflux2conf().getOrgId());
+
+        //for fun and inspection
+        SetupTestSuite.printTables(query, tables);
+
+        assertThat(tables.size()).isEqualTo(1); //one for each monitor tag set
+
+        long recCt = 100;
+
+        Double D = Double.MAX_VALUE;
+
+
+        for(FluxRecord rec : tables.get(0).getRecords()){
+            assertThat(rec.getValue() instanceof Double);
+            assertThat(rec.getValue()).isEqualTo(D);
+            // same function used in setup()
+            D = (recCt < DummyRecCount/2.0)  ? Math.pow((Math.sqrt(recCt) + 1), recCt) : 1.0/(Math.pow(DummyRecCount - recCt,  DummyRecCount - recCt));
+            recCt--;
+        }
 
     }
 
