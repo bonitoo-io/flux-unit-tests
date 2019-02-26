@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -117,7 +118,7 @@ public class TypeCastTestSuite {
 
             pString.addField("long_str", Long.toString(Long.MAX_VALUE - (LongInterval * Long.valueOf(i))));
 
-            moments.add(Instant.now());
+            moments.add(Instant.ofEpochMilli((new Date().getTime() - (i * 10000))));
 
             pString.addField("date_str", moments.get(moments.size() - 1).toString());
 
@@ -555,6 +556,55 @@ public class TypeCastTestSuite {
             D = (recCt < DummyRecCount/2.0)  ? Math.pow((Math.sqrt(recCt) + 1), recCt) : 1.0/(Math.pow(DummyRecCount - recCt,  DummyRecCount - recCt));
             recCt--;
         }
+
+    }
+
+    @Test
+    public void TimeToStringTest(){
+
+        String query = String.format("from(bucket: \"%s\")\n" +
+                "  |> range(start: -4h, stop: now())\n" +
+                "  |> filter(fn: (r) => r._measurement == \"strings\")\n" +
+                "  |> filter(fn: (r) => r._field == \"date_str\")\n" +
+                "  |> duplicate(column: \"_time\", as: \"foo_time\")\n" +
+                "  |> drop(columns: [\"_value\"])\n" +
+                "  |> rename(columns: {foo_time: \"_value\"})\n" +
+                "  |> toString()", SetupTestSuite.getTestConf().getOrg().getBucket());
+
+        List<FluxTable> tables = queryClient.query(query, SetupTestSuite.getInflux2conf().getOrgId());
+
+        //for fun and inspection
+        SetupTestSuite.printTables(query, tables);
+
+        assertThat(tables.size()).isEqualTo(1); //one for each monitor tag set
+
+        tables.get(0).getRecords().forEach(rec -> {
+            assertThat(rec.getValue()).isInstanceOf(String.class);
+        });
+
+    }
+
+    @Test
+    public void StringToTimeTest(){
+
+        String query = String.format("from(bucket: \"%s\")\n" +
+                "  |> range(start: -4h, stop: now())\n" +
+                "  |> filter(fn: (r) => r._measurement == \"strings\")\n" +
+                "  |> filter(fn: (r) => r._field == \"date_str\")\n" +
+                "  |> toTime()",
+                SetupTestSuite.getTestConf().getOrg().getBucket());
+
+
+        List<FluxTable> tables = queryClient.query(query, SetupTestSuite.getInflux2conf().getOrgId());
+
+        //for fun and inspection
+        SetupTestSuite.printTables(query, tables);
+
+        assertThat(tables.size()).isEqualTo(1); //one for each monitor tag set
+
+        tables.get(0).getRecords().forEach(rec -> {
+            assertThat(rec.getValue()).isInstanceOf(Instant.class);
+        });
 
     }
 
