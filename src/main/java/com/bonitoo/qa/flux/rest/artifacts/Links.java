@@ -2,10 +2,11 @@ package com.bonitoo.qa.flux.rest.artifacts;
 
 public class Links {
 
-    private String next;
-    private String prev;
+    //private String next;
+    //private String prev;
     private String self;
 
+    /*
     public String getNext() {
         return next;
     }
@@ -21,6 +22,7 @@ public class Links {
     public void setPrev(String prev) {
         this.prev = prev;
     }
+    */
 
     public String getSelf() {
         return self;

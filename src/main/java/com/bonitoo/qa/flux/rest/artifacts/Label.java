@@ -1,7 +1,10 @@
 package com.bonitoo.qa.flux.rest.artifacts;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import java.util.List;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Label {
 
     String id;

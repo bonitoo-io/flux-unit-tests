@@ -328,6 +328,8 @@ public class SetupTestSuite {
 
         Response response = builder.get();
 
+//        System.out.println("DEBUG orgs " + response.readEntity(String.class));
+
         OrganizationArray orgArray = response.readEntity(OrganizationArray.class );
 
        //should be only 1 org

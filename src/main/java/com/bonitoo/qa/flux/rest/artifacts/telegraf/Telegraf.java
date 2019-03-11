@@ -1,7 +1,11 @@
 package com.bonitoo.qa.flux.rest.artifacts.telegraf;
 
+import com.bonitoo.qa.flux.rest.artifacts.Label;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import java.util.List;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Telegraf {
 
     String id;
@@ -10,6 +14,8 @@ public class Telegraf {
     String description;
     Agent agent;
     List<TelegrafPluginIgnoreConf> plugins;
+    List<Label> labels;
+    TelegrafLinks links;
 
     public String getId() {
         return id;

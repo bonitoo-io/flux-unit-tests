@@ -6,6 +6,7 @@ public class OrganizationLinks {
     private String dashboards;
     private String labels;
     private String members;
+    private String owners;
     private String secrets;
     private String self;
     private String tasks;
@@ -73,5 +74,13 @@ public class OrganizationLinks {
 
     public void setLog(String log) {
         this.log = log;
+    }
+
+    public String getOwners() {
+        return owners;
+    }
+
+    public void setOwners(String owners) {
+        this.owners = owners;
     }
 }

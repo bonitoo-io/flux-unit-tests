@@ -1,5 +1,8 @@
 package com.bonitoo.qa.flux.rest.artifacts.telegraf;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Agent {
 
     int collectionInterval;
