@@ -23,10 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -125,10 +122,27 @@ public class TransformationsTestSuite {
         String[] colVals = {"_start", "_stop", "_time", "_value", "_field",
                 "_measurement", "city", "gps", "label", "location", "unitId"};
 
-        int colValsCt = 0;
+        List<String> colValsList = new ArrayList<String>();
 
+        for(String s : colVals){
+            colValsList.add(s);
+        }
+
+        List<String> recValsList = new ArrayList<String>();
+
+        //assert That all records are in colVals since order is not determined
         for(FluxRecord rec : tables.get(0).getRecords()){
-            assertThat((String)rec.getValue()).isEqualTo(colVals[colValsCt++]);
+            recValsList.add((String)rec.getValue());
+                assertThat(colValsList.contains(rec.getValue()))
+                        .as(String.format("record %s is in column Value list", rec.getValue()))
+                        .isTrue();
+        }
+
+        //assert That all column vals are in records table since order is not determined
+        for(String s : colValsList){
+            assertThat(recValsList.contains(s))
+                    .as(String.format("column %s is in record list", s))
+                    .isTrue();
         }
 
     }
@@ -260,12 +274,31 @@ public class TransformationsTestSuite {
 
         String[] colLabels = {"_time", "_value", "_field", "_measurement", "location"};
 
+        List<String> colLabelsList = new ArrayList<String>();
+
+        for(String s : colLabels){
+            colLabelsList.add(s);
+        }
+
+        List<String> recValsList = new ArrayList<String>();
+
+
         tables.forEach(table -> {
-            int colLabelsCt = 0;
+            //since order is not always determined
             for(FluxRecord rec : table.getRecords()){
-                assertThat(rec.getValueByKey("col_labels")).isEqualTo(colLabels[colLabelsCt++]);
+                recValsList.add((String)rec.getValueByKey("col_labels"));
+                assertThat(colLabelsList.contains(rec.getValueByKey("col_labels")))
+                        .as(String.format("rec %s should be among column labels", rec.getValueByKey("col_labels")))
+                        .isTrue();
             }
         });
+
+        //since order is not always determined check that labels are among results
+        for(String s : colLabelsList){
+            assertThat(recValsList.contains(s))
+                    .as("label %s should be among records", s)
+                    .isTrue();
+        }
 
     }
 
@@ -290,13 +323,29 @@ public class TransformationsTestSuite {
 
         String[] keyLabels = {"_field", "_measurement", "location"};
 
+        List<String> keyLabelsList = new ArrayList<String>();
+
+        for(String s : keyLabels){
+            keyLabelsList.add(s);
+        }
+
+        List<String> recValsList = new ArrayList<String>();
+
         tables.forEach(table -> {
-            int keyLabelsCt = 0;
             for(FluxRecord rec : table.getRecords()){
-                assertThat(rec.getValue()).isEqualTo(keyLabels[keyLabelsCt++]);
+                recValsList.add((String)rec.getValue());
+                assertThat(keyLabelsList.contains(rec.getValue()))
+                        .as(String.format("rec %s should be among keys", rec.getValue()))
+                        .isTrue();
             }
         });
 
+        //since order is not always determined check that labels are among results
+        for(String s : keyLabelsList){
+            assertThat(recValsList.contains(s))
+                    .as("key %s should be among records", s)
+                    .isTrue();
+        }
     }
 
     @Test
