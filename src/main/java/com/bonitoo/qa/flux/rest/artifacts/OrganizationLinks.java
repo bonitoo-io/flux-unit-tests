@@ -10,7 +10,7 @@ public class OrganizationLinks {
     private String secrets;
     private String self;
     private String tasks;
-    private String log;
+    private String logs;
 
     public String getBuckets() {
         return buckets;
@@ -68,12 +68,12 @@ public class OrganizationLinks {
         this.tasks = tasks;
     }
 
-    public String getLog() {
-        return log;
+    public String getLogs() {
+        return logs;
     }
 
-    public void setLog(String log) {
-        this.log = log;
+    public void setLogs(String logs) {
+        this.logs = logs;
     }
 
     public String getOwners() {
