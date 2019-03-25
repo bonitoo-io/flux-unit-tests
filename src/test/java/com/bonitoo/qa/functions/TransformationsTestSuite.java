@@ -538,7 +538,7 @@ public class TransformationsTestSuite {
     }
 
     @Test
-    public void shiftTest(){
+    public void timeShiftTest(){
         String query1 = String.format("from(bucket: \"%s\")\n" +
                 "  |> range(start: -4h)\n" +
                 "  |> filter(fn: (r) => r._measurement == \"air_quality\")\n" +
@@ -551,7 +551,7 @@ public class TransformationsTestSuite {
                 "  |> range(start: -4h)\n" +
                 "  |> filter(fn: (r) => r._measurement == \"air_quality\")\n" +
                 "  |> filter(fn: (r) => r._field == \"battery-v\")\n" +
-                "  |> shift(shift: -1h, columns: [\"_start\", \"_stop\", \"_time\"])",
+                "  |> timeShift(duration: -1h, columns: [\"_start\", \"_stop\", \"_time\"])",
                 SetupTestSuite.getTestConf().getOrg().getBucket());
 
         List<FluxTable> tables2 = queryClient.query(query2, SetupTestSuite.getInflux2conf().getOrgId());

@@ -36,7 +36,7 @@ public class OutputsTestSuite {
                 "  |> filter(fn: (r) => r._field == \"humidity\")\n" +
                 "  |> filter(fn: (r) => r.city == \"Praha\")\n" +
                 "  |> map(fn: (r) => ({_time: r._time, _measurement: r._measurement, _field: r._field, _value: 100.0 - r._value}), mergeKey: false)\n" +
-                "  |> shift(shift: -4h, columns: [\"_time\"])\n" +
+                "  |> timeShift(duration: -4h, columns: [\"_time\"])\n" +
                 "  |> set(key: \"_field\", value: \"dryness\")\n" +
                 "  |> to(bucket: \"%s\", org: \"%s\")",
                 SetupTestSuite.getTestConf().getOrg().getBucket(),
