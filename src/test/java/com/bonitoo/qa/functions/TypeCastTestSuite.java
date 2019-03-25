@@ -3,6 +3,7 @@ package com.bonitoo.qa.functions;
 import com.bonitoo.qa.SetupTestSuite;
 import org.influxdata.client.QueryApi;
 import org.influxdata.client.WriteApi;
+import org.influxdata.client.domain.WritePrecision;
 import org.influxdata.client.write.Point;
 import org.influxdata.query.FluxRecord;
 import org.influxdata.query.FluxTable;
@@ -12,7 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -122,9 +122,9 @@ public class TypeCastTestSuite {
 
             pString.addField("date_str", moments.get(moments.size() - 1).toString());
 
-            pBool.time(time, ChronoUnit.MILLIS);
+            pBool.time(time, WritePrecision.MS);
 
-            pString.time(time += recordInterval, ChronoUnit.MILLIS);
+            pString.time(time += recordInterval, WritePrecision.MS);
 
             writeClientBool.writePoint(SetupTestSuite.getInflux2conf().getBucketIds().get(0),
                     SetupTestSuite.getInflux2conf().getOrgId(),
