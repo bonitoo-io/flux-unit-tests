@@ -5,6 +5,7 @@ import com.bonitoo.qa.flux.rest.artifacts.OnBoardRequest;
 import de.vandermeer.asciitable.AsciiTable;
 import org.influxdata.client.QueryApi;
 import org.influxdata.client.WriteApi;
+import org.influxdata.client.domain.WritePrecision;
 import org.influxdata.client.write.Point;
 import org.influxdata.query.FluxTable;
 import org.junit.*;
@@ -46,7 +47,7 @@ public class ArtifactsTestSuite {
                 .addField("wind_speed", 10)
                 .addField("precipitation", 860)
                 .addField("battery_voltage", 2.6)
-                .time(now, ChronoUnit.SECONDS);
+                .time(now, WritePrecision.S);
 
         writeClient.writePoint(SetupTestSuite.getInflux2conf().getBucketIds().get(0),
                 SetupTestSuite.getInflux2conf().getOrgId(),
@@ -60,7 +61,7 @@ public class ArtifactsTestSuite {
                 .addField("wind_speed", 12)
                 .addField("precipitation", 865)
                 .addField("battery_voltage", 2.6)
-                .time(now.plus(10, ChronoUnit.SECONDS), ChronoUnit.SECONDS);
+                .time(now.plus(10, ChronoUnit.SECONDS), WritePrecision.S);
 
         writeClient.writePoint(SetupTestSuite.getInflux2conf().getBucketIds().get(0),
                 SetupTestSuite.getInflux2conf().getOrgId(), weatherOutdoor2);
@@ -73,7 +74,7 @@ public class ArtifactsTestSuite {
                 .addField("wind_speed", 11)
                 .addField("precipitation", 865)
                 .addField("battery_voltage", 2.6)
-                .time(now.plus(20, ChronoUnit.SECONDS), ChronoUnit.SECONDS);
+                .time(now.plus(20, ChronoUnit.SECONDS), WritePrecision.S);
 
         writeClient.writePoint(SetupTestSuite.getInflux2conf().getBucketIds().get(0),
                 SetupTestSuite.getInflux2conf().getOrgId(), weatherOutdoor3);

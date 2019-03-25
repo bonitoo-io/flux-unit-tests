@@ -16,6 +16,7 @@ import org.glassfish.jersey.logging.LoggingFeature;
 import org.influxdata.client.InfluxDBClientFactory;
 import org.influxdata.client.WriteApi;
 import org.influxdata.client.domain.OnboardingResponse;
+import org.influxdata.client.domain.WritePrecision;
 import org.influxdata.client.write.Point;
 import org.influxdata.exceptions.UnprocessableEntityException;
 import org.influxdata.query.FluxColumn;
@@ -40,7 +41,6 @@ import java.nio.channels.ReadableByteChannel;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -118,8 +118,8 @@ public class SetupTestSuite {
 
             bucketIDs.add(response.getBucket().getId());
             Influx2conf.setBucketIds(bucketIDs);
-            Influx2conf.setOrgId(response.getOrganization().getId());
-            Influx2conf.setToken(response.getAuthorization().getToken());
+            Influx2conf.setOrgId(response.getOrg().getId());
+            Influx2conf.setToken(response.getAuth().getToken());
 
         } catch (UnprocessableEntityException exception) {
 
@@ -233,7 +233,7 @@ public class SetupTestSuite {
                     .addField("humidity", rec.getHumidity())
                     .addField("pressure", rec.getAirpressure())
                     .addField("battery-v", rec.getBatteryVoltage())
-                    .time(time += recordInterval, ChronoUnit.MILLIS);
+                    .time(time += recordInterval, WritePrecision.MS);
 
             writeClient.writePoint(SetupTestSuite.getInflux2conf().getBucketIds().get(0),
                     SetupTestSuite.getInflux2conf().getOrgId(),
@@ -262,7 +262,7 @@ public class SetupTestSuite {
                         .addField("humidity", rec.getHumidity())
                         .addField("pressure", rec.getAirpressure())
                         .addField("battery-v", rec.getBatteryVoltage())
-                        .time(time += recordInterval, ChronoUnit.MILLIS);
+                        .time(time += recordInterval, WritePrecision.MS);
 
             }else{
                 p = Point.measurement("air_quality")
@@ -281,7 +281,7 @@ public class SetupTestSuite {
                         .addField("humidity", rec.getHumidity())
                         .addField("pressure", rec.getAirpressure())
                         .addField("battery-v", rec.getBatteryVoltage())
-                        .time(time += recordInterval, ChronoUnit.MILLIS);
+                        .time(time += recordInterval, WritePrecision.MS);
             }
 
             writeClient.writePoint(SetupTestSuite.getInflux2conf().getBucketIds().get(0),

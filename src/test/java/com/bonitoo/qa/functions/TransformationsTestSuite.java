@@ -58,7 +58,7 @@ public class TransformationsTestSuite {
                 p.addField("x",  Long.valueOf(-1));
             }
 
-            p.time(time += recordInterval, ChronoUnit.MILLIS);
+            p.time(time += recordInterval, WritePrecision.MS);
 
             writeClient.writePoint(SetupTestSuite.getInflux2conf().getBucketIds().get(0),
                     SetupTestSuite.getInflux2conf().getOrgId(),
