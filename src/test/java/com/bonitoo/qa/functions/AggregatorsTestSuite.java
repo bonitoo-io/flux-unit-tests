@@ -440,13 +440,13 @@ public class AggregatorsTestSuite {
     }
 
     @Test
-    public void percentileTest(){
+    public void quantileTest(){
 
         String query = String.format("from(bucket: \"%s\")\n" +
                 "  |> range(start: -4h)\n" +
                 "  |> filter(fn: (r) => r._measurement == \"air_quality\")\n" +
                 "  |> filter(fn: (r) => r._field == \"ppm025\")\n" +
-                "  |> percentile(percentile: 0.9)\n",
+                "  |> quantile(q: 0.99, method: \"estimate_tdigest\", compression: 1000.0 )\n",
                 SetupTestSuite.getTestConf().getOrg().getBucket());
 
         List<FluxTable> tables = queryClient.query(query, SetupTestSuite.getInflux2conf().getOrgId());
@@ -456,8 +456,8 @@ public class AggregatorsTestSuite {
 
         assertThat(tables.size()).isEqualTo(2);
 
-        assertThat((Double)tables.get(0).getRecords().get(0).getValue()).isEqualTo(46.5);
-        assertThat((Double)tables.get(1).getRecords().get(0).getValue()).isEqualTo(59.5);
+        assertThat((Double)tables.get(0).getRecords().get(0).getValue()).isEqualTo(48.0);
+        assertThat((Double)tables.get(1).getRecords().get(0).getValue()).isEqualTo(61.0);
     }
 
     @Test
