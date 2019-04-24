@@ -37,7 +37,9 @@ public class ArtifactsTestSuite {
 
         WriteApi writeClient = SetupTestSuite.getInfluxDBClient().getWriteApi();
 
-        Instant now = Instant.ofEpochSecond(1548851316);
+//        Instant now = Instant.ofEpochSecond(1548851316);
+        Instant now = Instant.now();
+        //Long nowMS = System.currentTimeMillis();
 
         // Mensuration 1
         Point weatherOutdoor1 = Point.measurement("weather_outdoor")
@@ -47,7 +49,7 @@ public class ArtifactsTestSuite {
                 .addField("wind_speed", 10)
                 .addField("precipitation", 860)
                 .addField("battery_voltage", 2.6)
-                .time(now, WritePrecision.S);
+                .time(now.minus(60, ChronoUnit.SECONDS), WritePrecision.S);
 
         writeClient.writePoint(SetupTestSuite.getInflux2conf().getBucketIds().get(0),
                 SetupTestSuite.getInflux2conf().getOrgId(),
@@ -61,7 +63,7 @@ public class ArtifactsTestSuite {
                 .addField("wind_speed", 12)
                 .addField("precipitation", 865)
                 .addField("battery_voltage", 2.6)
-                .time(now.plus(10, ChronoUnit.SECONDS), WritePrecision.S);
+                .time(now.minus(120, ChronoUnit.SECONDS), WritePrecision.S);
 
         writeClient.writePoint(SetupTestSuite.getInflux2conf().getBucketIds().get(0),
                 SetupTestSuite.getInflux2conf().getOrgId(), weatherOutdoor2);
@@ -74,10 +76,12 @@ public class ArtifactsTestSuite {
                 .addField("wind_speed", 11)
                 .addField("precipitation", 865)
                 .addField("battery_voltage", 2.6)
-                .time(now.plus(20, ChronoUnit.SECONDS), WritePrecision.S);
+                .time(now.minus(180, ChronoUnit.SECONDS), WritePrecision.S);
 
         writeClient.writePoint(SetupTestSuite.getInflux2conf().getBucketIds().get(0),
                 SetupTestSuite.getInflux2conf().getOrgId(), weatherOutdoor3);
+
+        writeClient.flush();
 
         writeClient.close();
 
@@ -100,7 +104,7 @@ public class ArtifactsTestSuite {
 
         // Last Mensuration
         String flux = "from(bucket: \"" + SetupTestSuite.getTestConf().getOrg().getBucket() + "\")\n"
-                + "  |> range(start: 0)\n"
+                + "  |> range(start: -10m)\n"
                 + "  |> filter(fn: (r) => r._measurement == \"weather_outdoor\")\n"
                 + "  |> filter(fn: (r) => r.home == \"100\")\n"
                 + "  |> filter(fn: (r) => r.sensor == \"120\")\n"
@@ -108,9 +112,10 @@ public class ArtifactsTestSuite {
 
         List<FluxTable> tables = queryClient.query(flux, SetupTestSuite.getInflux2conf().getOrgId());
 
+        SetupTestSuite.printTables(flux, tables);
+
         assertThat(tables.size()).isGreaterThan(0);
 
-        SetupTestSuite.printTables(flux, tables);
 
     }
 

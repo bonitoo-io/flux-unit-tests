@@ -245,7 +245,7 @@ public class SelectorsTestSuite {
                 "  |> range(start: -4h)\n" +
                 "  |> filter(fn: (r) => r._measurement == \"air_quality\")\n" +
                 "  |> filter(fn: (r) => r._field == \"ppm10\")\n" +
-                "  |> highestAverage(n: 5, columns: [\"_value\"])\n",
+                "  |> highestAverage(n: 5, column: \"_value\")\n",
                 SetupTestSuite.getTestConf().getOrg().getBucket());
 
         List<FluxTable> tables = queryClient.query(query, SetupTestSuite.getInflux2conf().getOrgId());

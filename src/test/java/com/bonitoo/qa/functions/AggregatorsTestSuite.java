@@ -75,7 +75,7 @@ public class AggregatorsTestSuite {
                 "  |> range(start: -4h)\n" +
                 "  |> filter(fn: (r) => r._measurement == \"air_quality\")\n" +
                 "  |> filter(fn: (r) => r._field == \"SO2\")\n" +
-                "  |> count(columns: [\"_value\"])",
+                "  |> count(column: \"_value\")",
                 SetupTestSuite.getTestConf().getOrg().getBucket());
 
         List<FluxTable> tables = queryClient.query(query, SetupTestSuite.getInflux2conf().getOrgId());
@@ -169,7 +169,7 @@ public class AggregatorsTestSuite {
                 "  |> range(start: -4h)\n" +
                 "  |> filter(fn: (r) => r._measurement == \"air_quality\")\n" +
                 "  |> filter(fn: (r) => r._field == \"ppm10\")\n" +
-                "  |> integral(unit: 10s, columns: [\"_value\"])",
+                "  |> integral(unit: 10s, column: \"_value\")",
                 SetupTestSuite.getTestConf().getOrg().getBucket());
 
         List<FluxTable> tables = queryClient.query(query, SetupTestSuite.getInflux2conf().getOrgId());
@@ -204,7 +204,7 @@ public class AggregatorsTestSuite {
                 "  |> filter(fn: (r) => r._measurement == \"air_quality\")\n" +
                 "  |> filter(fn: (r) => r._field == \"humidity\")\n" +
                 "  |> window(every: 1h, period: 1h, offset: 4h)\n" +
-                "  |> mean(columns: [\"_value\"])",
+                "  |> mean(column: \"_value\")",
                 SetupTestSuite.getTestConf().getOrg().getBucket());
 
         List<FluxTable> tables = queryClient.query(query, SetupTestSuite.getInflux2conf().getOrgId());
@@ -251,7 +251,7 @@ public class AggregatorsTestSuite {
                         "  |> range(start: -4h)\n" +
                         "  |> filter(fn: (r) => r._measurement == \"air_quality\")\n" +
                         "  |> filter(fn: (r) => r._field == \"humidity\")\n" +
-                        "  |> mean(columns: [\"_value\"])",
+                        "  |> mean(column: \"_value\")",
                 SetupTestSuite.getTestConf().getOrg().getBucket());
 
         List<FluxTable> tables = queryClient.query(query, SetupTestSuite.getInflux2conf().getOrgId());
@@ -338,7 +338,7 @@ public class AggregatorsTestSuite {
                 "  |> range(start: -4h)\n" +
                 "  |> filter(fn: (r) => r._measurement == \"air_quality\")\n" +
                 "  |> filter(fn: (r) => r._field == \"NO2\")\n" +
-                "  |> stddev(columns: [\"_value\"])",
+                "  |> stddev(column: \"_value\")",
                 SetupTestSuite.getTestConf().getOrg().getBucket());
 
         List<FluxTable> tables = queryClient.query(query, SetupTestSuite.getInflux2conf().getOrgId());
@@ -362,7 +362,7 @@ public class AggregatorsTestSuite {
                 "  |> range(start: -4h)\n" +
                 "  |> filter(fn: (r) => r._measurement == \"air_quality\")\n" +
                 "  |> filter(fn: (r) => r._field == \"O3\")\n" +
-                "  |> spread(columns: [\"_value\"])",
+                "  |> spread(column: \"_value\")",
                 SetupTestSuite.getTestConf().getOrg().getBucket());
 
         List<FluxTable> tables = queryClient.query(query, SetupTestSuite.getInflux2conf().getOrgId());
@@ -386,7 +386,7 @@ public class AggregatorsTestSuite {
                 "  |> range(start: -4h)\n" +
                 "  |> filter(fn: (r) => r._measurement == \"air_quality\")\n" +
                 "  |> filter(fn: (r) => r._field == \"ppm10\")\n" +
-                "  |> sum(columns: [\"_value\"])",
+                "  |> sum(column: \"_value\")",
                 SetupTestSuite.getTestConf().getOrg().getBucket());
 
         List<FluxTable> tables = queryClient.query(query, SetupTestSuite.getInflux2conf().getOrgId());
@@ -411,7 +411,7 @@ public class AggregatorsTestSuite {
                 "  |> filter(fn: (r) => r.location == \"Smichov\")\n" +
                 "  |> filter(fn: (r) => r._field == \"ppm025\")\n" +
                 "  |> window(every: 30m, period: 30m, offset: -4h)\n" +
-                "  |> sum(columns: [\"_value\"])",
+                "  |> sum(column: \"_value\")",
                 SetupTestSuite.getTestConf().getOrg().getBucket());
 
         List<FluxTable> tables = queryClient.query(query, SetupTestSuite.getInflux2conf().getOrgId());
