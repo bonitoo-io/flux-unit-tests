@@ -37,9 +37,7 @@ public class ArtifactsTestSuite {
 
         WriteApi writeClient = SetupTestSuite.getInfluxDBClient().getWriteApi();
 
-//        Instant now = Instant.ofEpochSecond(1548851316);
         Instant now = Instant.now();
-        //Long nowMS = System.currentTimeMillis();
 
         // Mensuration 1
         Point weatherOutdoor1 = Point.measurement("weather_outdoor")
