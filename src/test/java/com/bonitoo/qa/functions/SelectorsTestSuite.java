@@ -1,6 +1,7 @@
 package com.bonitoo.qa.functions;
 
 import com.bonitoo.qa.SetupTestSuite;
+import com.bonitoo.qa.influx2.FluxUtils;
 import org.influxdata.client.QueryApi;
 import org.influxdata.query.FluxRecord;
 import org.influxdata.query.FluxTable;
@@ -68,8 +69,13 @@ public class SelectorsTestSuite {
 
         assertThat(tables.size()).isEqualTo(2);
 
+        assertThat(FluxUtils.tablesContainsRecordWithVal(tables, "Smichov")).isTrue();
+        assertThat(FluxUtils.tablesContainsRecordWithVal(tables, "Praha hlavni")).isTrue();
+
+        /*
         assertThat((String)tables.get(0).getRecords().get(0).getValue()).isEqualTo("Smichov");
         assertThat((String)tables.get(1).getRecords().get(0).getValue()).isEqualTo("Praha hlavni");
+        */
 
     }
 
@@ -90,8 +96,13 @@ public class SelectorsTestSuite {
 
         assertThat(tables.size()).isEqualTo(2);
 
+        assertThat(FluxUtils.tablesContainsRecordWithVal(tables, 2.1)).isTrue();
+        assertThat(FluxUtils.tablesContainsRecordWithVal(tables, 3.0)).isTrue();
+
+        /*
         assertThat((Double)tables.get(0).getRecords().get(0).getValue()).isEqualTo(2.1);
         assertThat((Double)tables.get(1).getRecords().get(0).getValue()).isEqualTo(3.0);
+        */
     }
 
 
@@ -112,8 +123,12 @@ public class SelectorsTestSuite {
 
         assertThat(tables.size()).isEqualTo(2);
 
+        assertThat(FluxUtils.tablesContainsRecordWithVal(tables, 37.0)).isTrue();
+        assertThat(FluxUtils.tablesContainsRecordWithVal(tables, 57.0)).isTrue();
+/*
         assertThat((Double)tables.get(0).getRecords().get(0).getValue()).isEqualTo(37);
         assertThat((Double)tables.get(1).getRecords().get(0).getValue()).isEqualTo(57);
+        */
     }
 
     @Test
@@ -130,8 +145,14 @@ public class SelectorsTestSuite {
         SetupTestSuite.printTables(query, tables);
 
         assertThat(tables.size()).isEqualTo(2);
+
+        assertThat(FluxUtils.tablesContainsRecordWithVal(tables, 22.0));
+        assertThat(FluxUtils.tablesContainsRecordWithVal(tables, 8.3));
+
+        /*
         assertThat((Double)tables.get(0).getRecords().get(0).getValue()).isEqualTo(22.0);
         assertThat((Double)tables.get(1).getRecords().get(0).getValue()).isEqualTo(8.3);
+        */
     }
 
     @Test
@@ -148,8 +169,14 @@ public class SelectorsTestSuite {
         SetupTestSuite.printTables(query, tables);
 
         assertThat(tables.size()).isEqualTo(2);
+
+        assertThat(FluxUtils.tablesContainsRecordWithVal(tables, 12.0)).isTrue();
+        assertThat(FluxUtils.tablesContainsRecordWithVal(tables, 3.8)).isTrue();
+
+        /*
         assertThat((Double)tables.get(0).getRecords().get(0).getValue()).isEqualTo(12.0);
         assertThat((Double)tables.get(1).getRecords().get(0).getValue()).isEqualTo(3.8);
+        */
 
     }
 
@@ -198,8 +225,12 @@ public class SelectorsTestSuite {
 
         assertThat(tables.size()).isEqualTo(2);
 
-        Double[] vals = { 217.0, 217.0, 217.0, 145.0, 144.0, 143.0};
+        Double[][] vals = { {217.0, 217.0, 217.0}, {145.0, 144.0, 143.0}};
 
+        assertThat(FluxUtils.tablesContainsRecordsWithValsInOrder(tables,vals[0])).isTrue();
+        assertThat(FluxUtils.tablesContainsRecordsWithValsInOrder(tables,vals[1])).isTrue();
+
+        /*
         int valsCt = 0;
 
         for(FluxTable table : tables){
@@ -207,6 +238,7 @@ public class SelectorsTestSuite {
                 assertThat((Double)rec.getValue()).isEqualTo(vals[valsCt++]);
             }
         }
+        */
 
     }
 

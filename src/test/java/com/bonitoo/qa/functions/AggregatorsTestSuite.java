@@ -2,6 +2,7 @@ package com.bonitoo.qa.functions;
 
 import com.bonitoo.qa.SetupTestSuite;
 import com.bonitoo.qa.data.AirMonitorRecord;
+import com.bonitoo.qa.influx2.FluxUtils;
 import org.influxdata.client.QueryApi;
 import org.influxdata.query.FluxRecord;
 import org.influxdata.query.FluxTable;
@@ -92,8 +93,13 @@ public class AggregatorsTestSuite {
             assertThat(size).isEqualTo(1);
         });
 
+
+        assertThat(FluxUtils.tablesContainsRecordWithVal(tables, 10L)).isTrue();
+        assertThat(FluxUtils.tablesContainsRecordWithVal(tables, 20L)).isTrue();
+        /*
         assertThat(tables.get(0).getRecords().get(0).getValue()).isEqualTo(Long.valueOf(10));
         assertThat(tables.get(1).getRecords().get(0).getValue()).isEqualTo(Long.valueOf(20));
+        */
 
     }
 
@@ -184,8 +190,14 @@ public class AggregatorsTestSuite {
             assertThat(size).isEqualTo(1);
         });
 
+        //tables order is not always deterministic
+        assertThat(FluxUtils.tablesContainsRecordWithVal(tables, 230520.0)).isTrue();
+        assertThat(FluxUtils.tablesContainsRecordWithVal(tables, 137250.0)).isTrue();
+
+        /*
         assertThat(tables.get(0).getRecords().get(0).getValue()).isEqualTo(230520.0);
         assertThat(tables.get(1).getRecords().get(0).getValue()).isEqualTo(137250.0);
+        */
 
     }
 
@@ -261,8 +273,13 @@ public class AggregatorsTestSuite {
 
         assertThat(tables.size()).isEqualTo(2);
 
+        assertThat(FluxUtils.tablesContainsRecordWithVal(tables, 72.53)).isTrue();
+        assertThat(FluxUtils.tablesContainsRecordWithVal(tables, 66.95)).isTrue();
+
+        /*
         assertThat(tables.get(0).getRecords().get(0).getValue()).isEqualTo(72.53);
         assertThat(tables.get(1).getRecords().get(0).getValue()).isEqualTo(66.95);
+        */
     }
 
     @Test
@@ -348,10 +365,15 @@ public class AggregatorsTestSuite {
 
         assertThat(tables.size()).isEqualTo(2);
 
+        assertThat(FluxUtils.tablesContainsRecordWithVal(tables, 5.31350)).isTrue();
+        assertThat(FluxUtils.tablesContainsRecordWithVal(tables, 3.01705)).isTrue();
+
+/*
         assertThat(setPrecision((Double)tables.get(0).getRecords().get(0).getValue(), 3))
                 .isEqualTo(setPrecision(5.313504806936128, 3));
         assertThat(setPrecision((Double)tables.get(1).getRecords().get(0).getValue(), 3))
                 .isEqualTo(setPrecision(3.017056774233354, 3));
+                */
 
     }
 
@@ -372,10 +394,15 @@ public class AggregatorsTestSuite {
 
         assertThat(tables.size()).isEqualTo(2);
 
+        assertThat(FluxUtils.tablesContainsRecordWithVal(tables, 19L)).isTrue();
+        assertThat(FluxUtils.tablesContainsRecordWithVal(tables, 35L)).isTrue();
+
+/*
         assertThat(tables.get(0).getRecords().get(0).getValue())
                 .isEqualTo(Long.valueOf(19));
         assertThat(tables.get(1).getRecords().get(0).getValue())
                 .isEqualTo(Long.valueOf(35));
+                */
 
     }
 
@@ -396,10 +423,16 @@ public class AggregatorsTestSuite {
 
         assertThat(tables.size()).isEqualTo(2);
 
+        //table order not always deterministitc
+        assertThat(FluxUtils.tablesContainsRecordWithVal(tables,4026.0)).isTrue();
+        assertThat(FluxUtils.tablesContainsRecordWithVal(tables,2412.0)).isTrue();
+
+/*
         assertThat(tables.get(0).getRecords().get(0).getValue())
                 .isEqualTo(4026.0);
         assertThat(tables.get(1).getRecords().get(0).getValue())
                 .isEqualTo(2412.0);
+                */
     }
 
     @Test
@@ -456,8 +489,13 @@ public class AggregatorsTestSuite {
 
         assertThat(tables.size()).isEqualTo(2);
 
+        assertThat(FluxUtils.tablesContainsRecordWithVal(tables, 48.0)).isTrue();
+        assertThat(FluxUtils.tablesContainsRecordWithVal(tables, 61.0)).isTrue();
+
+        /*
         assertThat((Double)tables.get(0).getRecords().get(0).getValue()).isEqualTo(48.0);
         assertThat((Double)tables.get(1).getRecords().get(0).getValue()).isEqualTo(61.0);
+        */
     }
 
     @Test
@@ -477,8 +515,13 @@ public class AggregatorsTestSuite {
 
         assertThat(tables.size()).isEqualTo(2);
 
+        assertThat(FluxUtils.tablesContainsRecordWithVal(tables, 0.77953));
+        assertThat(FluxUtils.tablesContainsRecordWithVal(tables, 0.44498));
+
+        /*
         assertThat((Double)tables.get(0).getRecords().get(0).getValue()).isEqualTo(0.7795347338130559);
         assertThat((Double)tables.get(1).getRecords().get(0).getValue()).isEqualTo(0.44497585268630263);
+        */
 
     }
 

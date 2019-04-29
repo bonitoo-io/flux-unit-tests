@@ -10,6 +10,7 @@ package com.bonitoo.qa.functions;
  */
 
 import com.bonitoo.qa.SetupTestSuite;
+import com.bonitoo.qa.influx2.FluxUtils;
 import org.assertj.core.util.VisibleForTesting;
 import org.influxdata.client.QueryApi;
 import org.influxdata.client.WriteApi;
@@ -395,8 +396,11 @@ public class TransformationsTestSuite {
 
         assertThat(tables.size()).isEqualTo(2); //one for each monitor tag set
 
-        Double[] vals = {73.5, 73.0, 72.8, 72.6, 72.8, 68.0, 67.5, 67.5, 67.0, 66.5};
+        Double[][] vals = {{73.5, 73.0, 72.8, 72.6, 72.8}, {68.0, 67.5, 67.5, 67.0, 66.5}};
 
+        assertThat(FluxUtils.tablesContainsRecordsWithValsInOrder(tables, vals[0]));
+
+        /*
         int valsCt = 0;
 
         for(FluxTable table : tables){
@@ -404,7 +408,7 @@ public class TransformationsTestSuite {
             for(FluxRecord rec : table.getRecords()){
                 assertThat(rec.getValue()).isEqualTo(vals[valsCt++]);
             }
-        }
+        }*/
 
 
     }
