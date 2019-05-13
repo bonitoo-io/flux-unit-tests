@@ -61,7 +61,7 @@ public class OutputsTestSuite {
                 "  |> filter(fn: (r) => r._measurement == \"air_quality\")\n" +
                 "  |> filter(fn: (r) => r._field == \"humidity\")\n" +
                 "  |> filter(fn: (r) => r.city == \"Praha\")\n" +
-                "  |> map(fn: (r) => ({_time: r._time, _measurement: r._measurement, _field: r._field, _value: 100.0 - r._value; location: r.location}), mergeKey: false)\n" +
+                "  |> map(fn: (r) => ({_time: r._time, _measurement: r._measurement, _field: r._field, _value: 100.0 - r._value, location: r.location}), mergeKey: false)\n" +
                 "  |> timeShift(duration: -4h, columns: [\"_time\"])\n" +
                 "  |> set(key: \"_field\", value: \"dryness\")\n" +
                 "  |> to(bucket: \"%s\", org: \"%s\")\n",
@@ -74,6 +74,9 @@ public class OutputsTestSuite {
                 "  |> filter(fn: (r) => r._measurement == \"air_quality\")\n" +
                 "  |> filter(fn: (r) => r._field == \"dryness\")",
                 SetupTestSuite.getTestConf().getOrg().getBucket());
+
+        System.out.println("DEBUG queryOut: " + queryOut);
+        System.out.println("DEBUG queryIn: " + queryIn);
 
         List<FluxTable> tablesOut = queryClient.query(queryOut, SetupTestSuite.getInflux2conf().getOrgId());
 

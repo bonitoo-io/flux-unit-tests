@@ -150,7 +150,7 @@ public class TypeCastTestSuite {
                "  |> filter(fn: (r) => r._field == \"SO2\")\n" +
                "  |> filter(fn: (r) => r.location == \"Smichov\" )\n" +
                "  |> toString()\n" +
-               "  |> map(fn: (r) => ({ _measurement: r._measurement, _field: r._field: _value: \"FOO[\" + r._value + \"]\" }) , mergeKey: true)",
+               "  |> map(fn: (r) => ({ _measurement: r._measurement, _field: r._field, _value: \"FOO[\" + r._value + \"]\" }) , mergeKey: true)",
                SetupTestSuite.getTestConf().getOrg().getBucket());
 
         List<FluxTable> tables = queryClient.query(query, SetupTestSuite.getInflux2conf().getOrgId());
@@ -181,7 +181,7 @@ public class TypeCastTestSuite {
                 "  |> filter(fn: (r) => r._field == \"SO2\")\n" +
                 "  |> filter(fn: (r) => r.location == \"Smichov\" )\n" +
                 "  |> toFloat()  \n" +
-                "  |> map(fn: (r) => ({ _measurement: r._measurement, _field: r._field: _value: 100.0 + r._value }), mergeKey: true)\n",
+                "  |> map(fn: (r) => ({ _measurement: r._measurement, _field: r._field, _value: 100.0 + r._value }), mergeKey: true)\n",
                 SetupTestSuite.getTestConf().getOrg().getBucket());
 
         List<FluxTable> tables = queryClient.query(query, SetupTestSuite.getInflux2conf().getOrgId());
@@ -249,7 +249,7 @@ public class TypeCastTestSuite {
                 "  |> filter(fn: (r) => r._field == \"CO\") \n" +
                 "  |> filter(fn: (r) => r.location == \"Smichov\")\n" +
                 "  |> toString()\n" +
-                "  |> map(fn: (r) => ({ _measurement: r._measurement, _field: r._field: _value: \"FOO=\" + r._value + \" ppm\" }), mergeKey: true)",
+                "  |> map(fn: (r) => ({ _measurement: r._measurement, _field: r._field, _value: \"FOO=\" + r._value + \" ppm\" }), mergeKey: true)",
                 SetupTestSuite.getTestConf().getOrg().getBucket());
 
         List<FluxTable> tables = queryClient.query(query, SetupTestSuite.getInflux2conf().getOrgId());
@@ -279,7 +279,7 @@ public class TypeCastTestSuite {
                 "  |> filter(fn: (r) => r._field == \"CO\")\n" +
                 "  |> filter(fn: (r) => r.location == \"Smichov\")\n" +
                 "  |> toInt()  \n" +
-                "  |> map(fn: (r) => ({ _measurement: r._measurement, _field: r._field: _value: r._value * 100 }), mergeKey: true)\n",
+                "  |> map(fn: (r) => ({ _measurement: r._measurement, _field: r._field, _value: r._value * 100 }), mergeKey: true)\n",
                 SetupTestSuite.getTestConf().getOrg().getBucket());
 
         List<FluxTable> tables = queryClient.query(query, SetupTestSuite.getInflux2conf().getOrgId());
