@@ -355,6 +355,7 @@ public class TransformationsTestSuite {
         String query = String.format("from(bucket: \"%s\")\n" +
                         "  |> range(start: -4h)\n" +
                         "  |> filter(fn: (r) => r._measurement == \"air_quality\")\n" +
+                        "  |> filter(fn: (r) => r._field != \"dryness\")\n" +
                         "  |> drop(columns: [\"_start\", \"_stop\"])\n" +
                         "  |> keep(columns: [\"_time\", \"_value\", \"_field\", \"_measurement\"])\n" +
                         "  |> keyValues(keyColumns: [\"_field\" )",
@@ -366,16 +367,20 @@ public class TransformationsTestSuite {
         SetupTestSuite.printTables(query, tables);
 
         assertThat(tables.size()).isEqualTo(10); //one for each monitor tag set
+        // Can be run after OutputsTestSuite which will raise the count
+        // assertThat(tables.size() == 10 || tables.size() == 11).isTrue();
 
-        String[] keyVals = {"CO", "NO2", "O3", "SO2", "battery-v", "humidity", "ppm025", "ppm10", "pressure", "temp"};
 
-        int keyValsCt = 0;
+        // run before OutputsTestSuite
+            String[] keyVals = {"CO", "NO2", "O3", "SO2", "battery-v", "humidity", "ppm025", "ppm10", "pressure", "temp"};
 
-        for(FluxTable table : tables){
+            int keyValsCt = 0;
 
-            assertThat(table.getRecords().get(0).getValue()).isEqualTo(keyVals[keyValsCt++]);
+            for(FluxTable table : tables){
 
-        }
+                assertThat(table.getRecords().get(0).getValue()).isEqualTo(keyVals[keyValsCt++]);
+
+            }
 
     }
 

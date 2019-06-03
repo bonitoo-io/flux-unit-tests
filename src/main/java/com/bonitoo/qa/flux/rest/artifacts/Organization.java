@@ -6,6 +6,8 @@ public class Organization {
     private String name;
     private String description;
     private OrganizationLinks links;
+    private String createdAt;
+    private String updatedAt;
 
     public String getId() {
         return id;
@@ -37,5 +39,21 @@ public class Organization {
 
     public void setLinks(OrganizationLinks links) {
         this.links = links;
+    }
+
+    public String getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(String createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public String getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(String updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }
