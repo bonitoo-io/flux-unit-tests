@@ -358,7 +358,7 @@ public class TransformationsTestSuite {
                         "  |> filter(fn: (r) => r._field != \"dryness\")\n" +
                         "  |> drop(columns: [\"_start\", \"_stop\"])\n" +
                         "  |> keep(columns: [\"_time\", \"_value\", \"_field\", \"_measurement\"])\n" +
-                        "  |> keyValues(keyColumns: [\"_field\" )",
+                        "  |> keyValues(keyColumns: [\"_field\"] )",
                 SetupTestSuite.getTestConf().getOrg().getBucket());
 
         List<FluxTable> tables = queryClient.query(query, SetupTestSuite.getInflux2conf().getOrgId());

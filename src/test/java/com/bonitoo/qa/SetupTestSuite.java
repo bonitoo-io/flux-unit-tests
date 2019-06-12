@@ -148,6 +148,7 @@ public class SetupTestSuite {
         signIn();
         fetchOrgId();
         fetchToken();
+        Thread.sleep(3000); //troubleshoot why getting invalid org permission when setting up telegraf
         setupTelegraf();
         restartTelegraf();
 
@@ -379,6 +380,10 @@ public class SetupTestSuite {
                 OrgId,
                 plugins);
 
+ //       ObjectMapper mapper = new ObjectMapper();
+
+//        System.out.println("DEBUG telegraf request: " + mapper.writeValueAsString(telegrafReq));
+
 //        ObjectMapper objectMapper = new ObjectMapper();
 
 //        try {
@@ -394,6 +399,8 @@ public class SetupTestSuite {
 //        System.out.println("DEBUG telegraf response: " + r2.readEntity(String.class));
 
         Telegraf telegraf = r2.readEntity(Telegraf.class);
+
+//        System.out.println("DEBUG telegraf" + telegraf);
 
         //Download config
 

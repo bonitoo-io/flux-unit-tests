@@ -131,7 +131,7 @@ public class SystemDashTestSuite {
                 "from(bucket: \"%s\")\n" +
                 "  |> range(start: dashboardTime)\n" +
                 "  |> filter(fn: (r) => r._measurement == \"system\" and r.host == \"%s\" and (r._field == \"uptime\"))\n" +
-                "  |> map(fn: (r) => ({_time: r._time, _value: r._value / 1))\n" +
+                "  |> map(fn: (r) => ({_time: r._time, _value: r._value / 1}))\n" +
                 "  |> window(every: autoInterval)\n" +
                 "  |> last()\n" +
                 "  |> group(columns: [\"_time\", \"_start\", \"_stop\", \"_value\"], mode: \"except\")",

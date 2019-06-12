@@ -1,20 +1,18 @@
 package com.bonitoo.qa.flux.rest.artifacts.telegraf;
 
-import com.fasterxml.jackson.databind.SerializationFeature;
-
 import java.util.List;
 
 public class TelegrafRequest {
 
     private String name;
     private Agent agent;
-    private String organizationID;
+    private String orgID;
     private List<TelegrafPlugin> plugins;
 
     public TelegrafRequest(String name, Agent agent, String organizationID, List<TelegrafPlugin> plugins) {
         this.name = name;
         this.agent = agent;
-        this.organizationID = organizationID;
+        this.orgID = organizationID;
         this.plugins = plugins;
     }
 
@@ -34,12 +32,12 @@ public class TelegrafRequest {
         this.agent = agent;
     }
 
-    public String getOrganizationID() {
-        return organizationID;
+    public String getOrgID() {
+        return orgID;
     }
 
-    public void setOrganizationID(String organizationID) {
-        this.organizationID = organizationID;
+    public void setOrgID(String orgID) {
+        this.orgID = orgID;
     }
 
 
