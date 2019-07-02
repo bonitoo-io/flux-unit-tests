@@ -391,9 +391,9 @@ public class TypeCastTestSuite {
             assertThat(rec.getValue()).isInstanceOf(Boolean.class);
 
             if(valsCt % 2 == 0){
-                assertThat(rec.getValue()).isEqualTo(true);
-            }else{
                 assertThat(rec.getValue()).isEqualTo(false);
+            }else{
+                assertThat(rec.getValue()).isEqualTo(true);
             }
 
             valsCt++;
