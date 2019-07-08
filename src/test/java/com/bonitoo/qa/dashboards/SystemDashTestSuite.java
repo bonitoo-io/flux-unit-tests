@@ -131,7 +131,7 @@ public class SystemDashTestSuite {
                 "from(bucket: \"%s\")\n" +
                 "  |> range(start: dashboardTime)\n" +
                 "  |> filter(fn: (r) => r._measurement == \"system\" and r.host == \"%s\" and (r._field == \"uptime\"))\n" +
-                "  |> map(fn: (r) => ({_time: r._time, _value: r._value / 1}))\n" +
+                "  |> map(fn: (r) => ({_time: r._time, _value: r._value / 1, _measurement: r._measurement, _field: r._field}))\n" +
                 "  |> window(every: autoInterval)\n" +
                 "  |> last()\n" +
                 "  |> group(columns: [\"_time\", \"_start\", \"_stop\", \"_value\"], mode: \"except\")",
@@ -384,7 +384,7 @@ public class SystemDashTestSuite {
                 "from(bucket: \"%s\")\n" +
                 "  |> range(start: dashboardTime)\n" +
                 "  |> filter(fn: (r) => r._measurement == \"mem\" and (r._field == \"total\"))\n" +
-                "  |> map(fn: (r) => r._value/1024/1024/1024)",
+                "  |> map(fn: (r) => ({_value: r._value/1024/1024/1024, _measurement: r._measurement, _field: r._field}))",
                 SetupTestSuite.getTestConf().getOrg().getBucket());
 
         List<FluxTable> tables = queryClient.query(query, SetupTestSuite.getInflux2conf().getOrgId());
