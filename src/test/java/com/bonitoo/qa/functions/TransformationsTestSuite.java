@@ -429,7 +429,7 @@ public class TransformationsTestSuite {
                         "  |> filter(fn: (r) => r._measurement == \"air_quality\")\n" +
                         "  |> filter(fn: (r) => r._field == \"ppm10\")\n" +
                         "  |> filter(fn: (r) => r.location == \"Praha hlavni\")\n" +
-                        "  |> map(fn: (r) => r._value - lowest, mergeKey: true)",
+                        "  |> map(fn: (r) => ({ _value: r._value - lowest}), mergeKey: true)",
                 SetupTestSuite.getTestConf().getOrg().getBucket());
 
         List<FluxTable> tables = queryClient.query(query, SetupTestSuite.getInflux2conf().getOrgId());
