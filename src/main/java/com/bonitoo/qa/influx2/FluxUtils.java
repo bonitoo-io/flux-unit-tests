@@ -1,7 +1,7 @@
 package com.bonitoo.qa.influx2;
 
-import org.influxdata.query.FluxRecord;
-import org.influxdata.query.FluxTable;
+import com.influxdb.query.FluxRecord;
+import com.influxdb.query.FluxTable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
