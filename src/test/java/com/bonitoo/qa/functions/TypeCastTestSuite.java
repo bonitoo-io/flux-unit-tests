@@ -1,12 +1,12 @@
 package com.bonitoo.qa.functions;
 
 import com.bonitoo.qa.SetupTestSuite;
-import org.influxdata.client.QueryApi;
-import org.influxdata.client.WriteApi;
-import org.influxdata.client.domain.WritePrecision;
-import org.influxdata.client.write.Point;
-import org.influxdata.query.FluxRecord;
-import org.influxdata.query.FluxTable;
+import com.influxdb.client.QueryApi;
+import com.influxdb.client.WriteApi;
+import com.influxdb.client.domain.WritePrecision;
+import com.influxdb.client.write.Point;
+import com.influxdb.query.FluxRecord;
+import com.influxdb.query.FluxTable;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;

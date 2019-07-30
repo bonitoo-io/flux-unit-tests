@@ -2,9 +2,9 @@ package com.bonitoo.qa.functions;
 
 import com.bonitoo.qa.SetupTestSuite;
 import com.bonitoo.qa.influx2.FluxUtils;
-import org.influxdata.client.QueryApi;
-import org.influxdata.query.FluxRecord;
-import org.influxdata.query.FluxTable;
+import com.influxdb.client.QueryApi;
+import com.influxdb.query.FluxRecord;
+import com.influxdb.query.FluxTable;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
