@@ -38,7 +38,8 @@ public class InputsTestSuite {
 
         assertThat(tables.size()).isEqualTo(1);
 
-        assertThat(tables.get(0).getRecords().get(0).getValueByKey("name"))
+// Now returns two default buckets _tasks and _monitoring
+        assertThat(tables.get(0).getRecords().get(2).getValueByKey("name"))
                 .isEqualTo(SetupTestSuite.getTestConf().getOrg().getBucket());
         assertThat(tables.get(0).getRecords().get(0).getValueByKey("id"))
                 .isEqualTo(SetupTestSuite.getInflux2conf().getBucketIds().get(0));
