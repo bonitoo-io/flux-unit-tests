@@ -45,7 +45,7 @@ run_docker_influx(){
    sudo docker run --name ${INSTANCE_NAME} --publish 9999:9999 ${DOCKER_IMAGE} > ${LOG_FILE} 2>&1 &
    echo "["$(date +"%d.%m.%Y %T")"] started instance $INSTANCE_NAME listening at port 9999."
    echo "logfile at $LOG_FILE"
-   sleep 3
+   wget -S --spider --tries=20 --retry-connrefused --waitretry=5 http://localhost:9999/metrics
    echo "\n$(tail -n32 $LOG_FILE)\n"
 }
 
