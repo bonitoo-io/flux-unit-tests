@@ -104,7 +104,7 @@
         <dependency>
             <groupId>com.influxdb</groupId>
             <artifactId>influxdb-client-java</artifactId>
-            <version>1.0.0.M2-SNAPSHOT</version>
+            <version>1.0.0</version>
         </dependency>
 
     </dependencies>
