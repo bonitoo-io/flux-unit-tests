@@ -1,9 +1,11 @@
 package com.bonitoo.qa.flux.rest.artifacts.authorization;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.util.List;
 
+//@JsonIgnoreProperties(ignoreUnknown = true)
 public class Authorization {
 
     List<String> links;
@@ -15,6 +17,8 @@ public class Authorization {
     String org;
     String userID;
     String user;
+    String createdAt;
+    String updatedAt;
     List<Permission> permissions;
 
     @JsonIgnore
@@ -89,6 +93,22 @@ public class Authorization {
 
     public void setUser(String user) {
         this.user = user;
+    }
+
+    public String getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(String createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public String getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(String updatedAt) {
+        this.updatedAt = updatedAt;
     }
 
     public List<Permission> getPermissions() {
