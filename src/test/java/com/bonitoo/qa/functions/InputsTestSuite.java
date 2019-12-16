@@ -3,6 +3,7 @@ package com.bonitoo.qa.functions;
 import com.bonitoo.qa.SetupTestSuite;
 import com.influxdb.client.QueryApi;
 import com.influxdb.query.FluxTable;
+import com.influxdb.query.FluxRecord;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -38,12 +39,20 @@ public class InputsTestSuite {
 
         assertThat(tables.size()).isEqualTo(1);
 
+        for(FluxTable table : tables){
+            for(FluxRecord rec : table.getRecords()){
+                System.out.println("DEBUG rec " + rec.getValueByKey("name") +
+                        " " + rec.getValueByKey("id") +
+                        " " + rec.getValueByKey("organizationID"));
+            }
+        }
+
 // Now returns two default buckets _tasks and _monitoring
-        assertThat(tables.get(0).getRecords().get(2).getValueByKey("name"))
+        assertThat(tables.get(0).getRecords().get(0).getValueByKey("name"))
                 .isEqualTo(SetupTestSuite.getTestConf().getOrg().getBucket());
-        assertThat(tables.get(0).getRecords().get(2).getValueByKey("id"))
+        assertThat(tables.get(0).getRecords().get(0).getValueByKey("id"))
                 .isEqualTo(SetupTestSuite.getInflux2conf().getBucketIds().get(0));
-        assertThat(tables.get(0).getRecords().get(2).getValueByKey("organizationID"))
+        assertThat(tables.get(0).getRecords().get(0).getValueByKey("organizationID"))
                 .isEqualTo(SetupTestSuite.getInflux2conf().getOrgId());
 
 
